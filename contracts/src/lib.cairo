@@ -3,9 +3,22 @@ use core::result;
 use core::result::ResultTrait;
 use core::integer;
 use core::starknet::contract_address::ContractAddress;
+use core::starknet;
+use core::starknet::SyscallResult;
+use core::starknet::SyscallResultTrait;
+use core::starknet::info::ExecutionInfo;
 use core::array::ArrayTrait;
 
-fn main(contract_address : ContractAddress) {
+fn main(contract_address : ContractAddress,
+  syscall_result_contract_address : SyscallResult<ContractAddress>,
+  syscall_result_u8 : SyscallResult<u8>,
+  syscall_result_u128 : SyscallResult<u128>,
+  syscall_result_unit : SyscallResult<()>,
+  syscall_result_box_execution_info : SyscallResult<Box<ExecutionInfo>>,
+  syscall_result_span_felt252 : SyscallResult<Span<felt252>>,
+  syscall_result_u256 : SyscallResult<u256>,
+  syscall_result_felt252 : SyscallResult<felt252>,
+  syscall_result_bool : SyscallResult<bool>) {
     //core::result::ResultTraitImpl<core::integer::u32, core::integer::u32>::expect<core::integer::u32Drop>();
     let x : Result<u32, u32> = Result::Ok(0_u32);
     let x : u32 = x.expect('foo');
@@ -106,4 +119,22 @@ fn main(contract_address : ContractAddress) {
     let x = core::starknet::info::get_contract_address();
     //core::starknet::info::get_block_timestamp
     let x = core::starknet::info::get_block_timestamp();
+    //core::starknet::SyscallResultTraitImpl<core::starknet::contract_address::ContractAddress>::unwrap_syscall
+    let x = syscall_result_contract_address.unwrap_syscall();
+    //core::starknet::SyscallResultTraitImpl<core::integer::u8>::unwrap_syscall
+    let x = syscall_result_u8.unwrap_syscall();
+    //core::starknet::SyscallResultTraitImpl<core::integer::u128>::unwrap_syscall
+    let x = syscall_result_u128.unwrap_syscall();
+    //core::starknet::SyscallResultTraitImpl<()>::unwrap_syscall
+    let x = syscall_result_unit.unwrap_syscall();
+    //core::starknet::SyscallResultTraitImpl<core::box::Box<core::starknet::info::ExecutionInfo>>::unwrap_syscall
+    let x = syscall_result_box_execution_info.unwrap_syscall();
+    //core::starknet::SyscallResultTraitImpl<core::array::Span<core::felt252>>::unwrap_syscall
+    let x = syscall_result_span_felt252.unwrap_syscall();
+    //core::starknet::SyscallResultTraitImpl<core::integer::u256>::unwrap_syscall
+    let x = syscall_result_u256.unwrap_syscall();
+    //core::starknet::SyscallResultTraitImpl<core::felt252>::unwrap_syscall
+    let x = syscall_result_felt252.unwrap_syscall();
+    //core::starknet::SyscallResultTraitImpl<core::bool>::unwrap_syscall
+    let x = syscall_result_bool.unwrap_syscall();
 }
