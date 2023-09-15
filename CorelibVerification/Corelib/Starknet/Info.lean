@@ -1,5 +1,5 @@
-import AuraContractsVerification.Corelib.Starknet.SyscallResult
-import AuraContractsVerification.Corelib.Integer
+import CorelibVerification.Corelib.Starknet.SyscallResult
+import CorelibVerification.Corelib.Integer
 
 namespace Sierra
 
