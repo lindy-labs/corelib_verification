@@ -8,6 +8,10 @@ use core::starknet::SyscallResult;
 use core::starknet::SyscallResultTrait;
 use core::starknet::info::ExecutionInfo;
 use core::array::ArrayTrait;
+use starknet::{StorageAccess, StorageBaseAddress, StorageAddress};
+use starknet::syscalls::{storage_read_syscall, storage_write_syscall};
+use starknet::storage_access::{StorageAccessU8, StorageAccessU32, StorageAccessU64, StorageAccessU128};
+use starknet::storage_access::{StorageAccessU256, StorageAccessBool, StorageAccessContractAddress};
 
 fn main(contract_address : ContractAddress,
   syscall_result_contract_address : SyscallResult<ContractAddress>,
@@ -18,7 +22,9 @@ fn main(contract_address : ContractAddress,
   syscall_result_span_felt252 : SyscallResult<Span<felt252>>,
   syscall_result_u256 : SyscallResult<u256>,
   syscall_result_felt252 : SyscallResult<felt252>,
-  syscall_result_bool : SyscallResult<bool>) {
+  syscall_result_bool : SyscallResult<bool>,
+  storage_base_address : StorageBaseAddress,
+  storage_address : StorageAddress) {
     //core::result::ResultTraitImpl<core::integer::u32, core::integer::u32>::expect<core::integer::u32Drop>();
     let x : Result<u32, u32> = Result::Ok(0_u32);
     let x : u32 = x.expect('foo');
@@ -137,4 +143,18 @@ fn main(contract_address : ContractAddress,
     let x = syscall_result_felt252.unwrap_syscall();
     //core::starknet::SyscallResultTraitImpl<core::bool>::unwrap_syscall
     let x = syscall_result_bool.unwrap_syscall();
+    //core::starknet::storage_access::StorageAccessU8::read
+    let x = StorageAccessU8::read(0, storage_base_address).unwrap_syscall();
+    //core::starknet::storage_access::StorageAccessU32::read
+    let x = StorageAccessU32::read(0, storage_base_address).unwrap_syscall();
+    //core::starknet::storage_access::StorageAccessU64::read
+    let x = StorageAccessU64::read(0, storage_base_address).unwrap_syscall();
+    //core::starknet::storage_access::StorageAccessU8::read
+    let x = StorageAccessU128::read(0, storage_base_address).unwrap_syscall();
+    //core::starknet::storage_access::StorageAccessU256::read
+    let x = StorageAccessU256::read(0, storage_base_address).unwrap_syscall();
+    //core::starknet::storage_access::StorageAccessBool::read
+    let x = StorageAccessBool::read(0, storage_base_address).unwrap_syscall();
+    //core::starknet::storage_access::StorageAccessContractAddress::read
+    let x = StorageAccessContractAddress::read(0, storage_base_address).unwrap_syscall();
 }

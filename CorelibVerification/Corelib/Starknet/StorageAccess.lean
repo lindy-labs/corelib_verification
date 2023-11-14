@@ -1,6 +1,7 @@
-import AuraContractsVerification.Corelib.Integer
-import AuraContractsVerification.Corelib.Starknet.ContractAddress
-import AuraContractsVerification.Aux.Bool
+import CorelibVerification.Corelib.Integer
+import CorelibVerification.Corelib.Starknet.ContractAddress
+import CorelibVerification.Aux.Bool
+import CorelibVerification.Load
 
 namespace Sierra
 
@@ -8,7 +9,7 @@ aegis_spec "core::starknet::storage_access::StorageAccessU8::read" :=
   fun m _ _ sys _ b_add _ _ ρ_sys ρ =>
   let r := (sys.contracts m.contractAddress).storage b_add.cast
   ρ_sys = sys
-  ∧ (r.val < U8_MOD ∧ ρ = .inl (.inl r.cast) 
+  ∧ (r.val < U8_MOD ∧ ρ = .inl (.inl r.cast)
     ∨ U8_MOD ≤ r.val ∧ ρ.isRight
     ∨ ∃ e, ρ = .inl (.inr e))
 
@@ -22,7 +23,7 @@ aegis_spec "core::starknet::storage_access::StorageAccessU32::read" :=
   fun m _ _ sys _ b_add _ _ ρ_sys ρ =>
   let r := (sys.contracts m.contractAddress).storage b_add.cast
   ρ_sys = sys
-  ∧ (r.val < U32_MOD ∧ ρ = .inl (.inl r.cast) 
+  ∧ (r.val < U32_MOD ∧ ρ = .inl (.inl r.cast)
     ∨ U32_MOD ≤ r.val ∧ ρ.isRight
     ∨ ∃ e, ρ = .inl (.inr e))
 
@@ -36,7 +37,7 @@ aegis_spec "core::starknet::storage_access::StorageAccessU64::read" :=
   fun m _ _ sys _ b_add _ _ ρ_sys ρ =>
   let r := (sys.contracts m.contractAddress).storage b_add.cast
   ρ_sys = sys
-  ∧ (r.val < U64_MOD ∧ ρ = .inl (.inl r.cast) 
+  ∧ (r.val < U64_MOD ∧ ρ = .inl (.inl r.cast)
     ∨ U64_MOD ≤ r.val ∧ ρ.isRight
     ∨ ∃ e, ρ = .inl (.inr e))
 
@@ -47,7 +48,7 @@ aegis_prove "core::starknet::storage_access::StorageAccessU64::read" :=
   aesop
 
 aegis_spec "core::starknet::storage_access::StorageAccessU128::read" :=
-  fun m _ _ sys _ b_add _ _ ρ_sys ρ => 
+  fun m _ _ sys _ b_add _ _ ρ_sys ρ =>
   let r := (sys.contracts m.contractAddress).storage b_add.cast
   ρ_sys = sys
   ∧ (r.val < U128_MOD ∧ ρ = .inl (.inl r.cast)
@@ -75,7 +76,7 @@ aegis_prove "core::starknet::storage_access::StorageAccessContractAddress::read"
   aesop
 
 aegis_spec "core::starknet::storage_access::StorageAccessU256::read" :=
-  fun m _ _ sys _ b_add _ _ ρ_sys ρ => 
+  fun m _ _ sys _ b_add _ _ ρ_sys ρ =>
   let r₁ := (sys.contracts m.contractAddress).storage b_add.cast
   let r₂ := (sys.contracts m.contractAddress).storage (b_add.cast + 1)
   ρ_sys = sys
@@ -124,10 +125,10 @@ aegis_prove "core::starknet::storage_access::StorageAccessU256::read" :=
     simp_all only [and_false, true_or, Sum.isRight_inr, and_self, exists_false, or_false, or_true]
 
 aegis_spec "core::starknet::storage_access::StorageAccessBool::read" :=
-  fun m _ s _ b_addr _ s' ρ => 
+  fun m _ s _ b_addr _ s' ρ =>
   let r := (s.contracts m.contractAddress).storage (b_addr : StorageAddress)
   s' = s
-  ∧ (ρ = .inl (Bool.toSierraBool (r ≠ 0)) ∨ ρ.isRight) 
+  ∧ (ρ = .inl (Bool.toSierraBool (r ≠ 0)) ∨ ρ.isRight)
 
 aegis_prove "core::starknet::storage_access::StorageAccessBool::read" :=
   fun m _ s _ b_addr _ s' ρ => by
