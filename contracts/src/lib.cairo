@@ -12,6 +12,7 @@ use starknet::{StorageAccess, StorageBaseAddress, StorageAddress};
 use starknet::syscalls::{storage_read_syscall, storage_write_syscall};
 use starknet::storage_access::{StorageAccessU8, StorageAccessU32, StorageAccessU64, StorageAccessU128};
 use starknet::storage_access::{StorageAccessU256, StorageAccessBool, StorageAccessContractAddress};
+use core::hash::LegacyHash;
 
 fn main(contract_address : ContractAddress,
   syscall_result_contract_address : SyscallResult<ContractAddress>,
@@ -24,7 +25,8 @@ fn main(contract_address : ContractAddress,
   syscall_result_felt252 : SyscallResult<felt252>,
   syscall_result_bool : SyscallResult<bool>,
   storage_base_address : StorageBaseAddress,
-  storage_address : StorageAddress) {
+  storage_address : StorageAddress,
+  ref ref_array_felt252 : Array<felt252>) {
     //core::result::ResultTraitImpl<core::integer::u32, core::integer::u32>::expect<core::integer::u32Drop>();
     let x : Result<u32, u32> = Result::Ok(0_u32);
     let x : u32 = x.expect('foo');
@@ -157,4 +159,20 @@ fn main(contract_address : ContractAddress,
     let x = StorageAccessBool::read(0, storage_base_address).unwrap_syscall();
     //core::starknet::storage_access::StorageAccessContractAddress::read
     let x = StorageAccessContractAddress::read(0, storage_base_address).unwrap_syscall();
+    //core::starknet::use_system_implicit
+    core::starknet::use_system_implicit();
+    //core::serde::Felt252Serde::serialize
+    core::serde::Felt252Serde::serialize(@0, ref ref_array_felt252);
+    //core::hash::LegacyHashU32::hash
+    let x = core::hash::LegacyHashU32::hash(0, 0_u32);
+    //core::hash::LegacyHashU64::hash
+    let x = core::hash::LegacyHashU64::hash(0, 0_u64);
+    //core::hash::TupleSize2LegacyHash<core::starknet::contract_address::ContractAddress, core::integer::u64, core::hash::LegacyHashContractAddress, core::hash::LegacyHashU64, core::starknet::contract_address::ContractAddressDrop, core::integer::u64Drop>::hash
+    let x = LegacyHash::hash(0, (0_u32, 0_u64));
+    //core::hash::TupleSize2LegacyHash<core::starknet::contract_address::ContractAddress, core::integer::u64, core::hash::LegacyHashContractAddress, core::hash::LegacyHashU64, core::starknet::contract_address::ContractAddressDrop, core::integer::u64Drop>::hash
+    let x = LegacyHash::hash(0, (contract_address, 0_u64));
+    //core::hash::TupleSize2LegacyHash<core::starknet::contract_address::ContractAddress, core::starknet::contract_address::ContractAddress, core::hash::LegacyHashContractAddress, core::hash::LegacyHashContractAddress, core::starknet::contract_address::ContractAddressDrop, core::starknet::contract_address::ContractAddressDrop>::hash
+    let x = LegacyHash::hash(0, (contract_address, contract_address));
+    //core::hash::TupleSize2LegacyHash<core::integer::u32, core::integer::u32, core::hash::LegacyHashU32, core::hash::LegacyHashU32, core::integer::u32Drop, core::integer::u32Drop>::hash
+    let x = LegacyHash::hash(0, (0_u32, 0_u32));
 }
