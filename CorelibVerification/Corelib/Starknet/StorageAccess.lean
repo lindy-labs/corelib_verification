@@ -93,36 +93,7 @@ aegis_prove "core::starknet::storage_access::StorageAccessU256::read" :=
   simp_all only [Int.cast_one, Nat.cast_ofNat, Int.int_cast_ofNat, List.nil_append, exists_and_right, Sum.exists,
     Sum.inl.injEq, and_false, or_false, exists_eq_left, exists_false, false_and, and_true, false_or, exists_const,
     true_and, exists_and_left, Sum.inr.injEq, Sum.isRight_inl, exists_eq', or_true, Sum.isRight_inr, or_self]
-  unhygienic aesop_cases h_auto <;> [(unhygienic aesop_cases h), skip]
-  · unhygienic with_reducible aesop_destruct_products
-    aesop_subst right_1
-    simp_all only [true_and]
-    unhygienic aesop_cases right <;> [(unhygienic aesop_cases h), skip]
-    · unhygienic with_reducible aesop_destruct_products
-      aesop_subst [left, right_1, right_2]
-      simp_all only [Sum.inl.injEq, Prod.mk.injEq, true_and, Sum.isRight_inl, and_false, exists_false, or_self,
-        or_false]
-      apply And.intro
-      · exact left_2
-      · apply Eq.refl
-    · simp_all only [true_and]
-      unhygienic with_reducible aesop_destruct_products
-      aesop_subst [right_1, left_2]
-      simp_all only [and_false, and_true, exists_false, or_false, false_or]
-      apply Or.inr
-      exact left
-    · simp_all only [true_and]
-      unhygienic with_reducible aesop_destruct_products
-      aesop_subst [h, left]
-      simp_all only [Sum.inl.injEq, and_false, Sum.isRight_inl, Sum.inr.injEq, exists_eq', or_true]
-  · simp_all only [true_and]
-    unhygienic with_reducible aesop_destruct_products
-    aesop_subst [left, h]
-    simp_all only [Sum.inl.injEq, and_false, Sum.isRight_inl, Sum.inr.injEq, exists_eq', or_true]
-  · simp_all only [true_and]
-    unhygienic with_reducible aesop_destruct_products
-    aesop_subst [left_1, h]
-    simp_all only [and_false, true_or, Sum.isRight_inr, and_self, exists_false, or_false, or_true]
+  unhygienic aesop_cases h_auto <;> aesop
 
 aegis_spec "core::starknet::storage_access::StorageAccessBool::read" :=
   fun m _ s _ b_addr _ s' ρ =>

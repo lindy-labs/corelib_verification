@@ -6,8 +6,8 @@ import Aegis.Tactic
 
 syntax "sierra_simp'" : tactic
 macro_rules
-| `(tactic|sierra_simp') => 
-  `(tactic| 
+| `(tactic|sierra_simp') =>
+  `(tactic|
     simp only [Prod.mk.inj_iff, and_assoc, Bool.coe_toSierraBool, Bool.toSierraBool_coe,
       exists_and_left, exists_and_right, exists_eq_left, exists_eq_right, exists_eq_right',
       exists_eq_left', not, or, and,
@@ -15,7 +15,7 @@ macro_rules
       Int.ofNat_eq_coe, Nat.cast_one, Nat.cast_zero, Int.cast_zero, ZMod.val_zero,
       exists_or, exists_const, ← or_and_right, ne_or_eq, true_and, false_and, eq_or_ne, and_true,
       le_or_gt, lt_or_ge, lt_or_le, le_or_lt, and_false, false_or, or_false];
-    simp only [← exists_and_left, ← exists_and_right, ← exists_or])
+    try simp only [← exists_and_left, ← exists_and_right, ← exists_or])
 
 open Sierra Classical
 
@@ -52,14 +52,15 @@ aegis_spec "core::integer::u128_checked_mul" := fun _ _ a b  _ ρ =>
 
 aegis_prove "core::integer::u128_checked_mul" := fun _ _ a b  _ ρ => by
   unfold «spec_core::integer::u128_checked_mul»
-  sierra_simp'
+  simp only [Prod.mk.injEq, ne_eq, forall_exists_index, and_imp,
+    forall_eq_apply_imp_iff', forall_eq]
   rintro (⟨h,rfl⟩|⟨h,rfl⟩)
-  · rw [← ZMod.cast_zero (n := U128_MOD), 
+  · rw [← ZMod.cast_zero (n := U128_MOD),
       (ZMod.cast_injective_of_lt U128_MOD_lt_PRIME.out).eq_iff, ZMod.hmul_eq_zero_iff] at h
     simp_all only [and_self, and_false, or_false]
-  · rw [← ZMod.cast_zero (n := U128_MOD),
+  · rw [← @ne_eq, ← ZMod.cast_zero (n := U128_MOD),
       (ZMod.cast_injective_of_lt U128_MOD_lt_PRIME.out).ne_iff] at h
-    simp_all [ZMod.hmul_eq_zero_iff] 
+    simp_all [ZMod.hmul_eq_zero_iff]
 
 aegis_spec "core::integer::U128Mul::mul" :=
   fun _ _ a b _ ρ =>
@@ -175,7 +176,7 @@ aegis_spec "core::integer::u256_from_felt252" :=
 aegis_prove "core::integer::u256_from_felt252" :=
   fun _ _ a _ ρ => by
   unfold «spec_core::integer::u256_from_felt252»
-  rintro ⟨_,_,(⟨h,rfl⟩|⟨_,_,rfl⟩)⟩ <;> aesop (add forward safe ZMod.val_of_cast_of_lt)
+  rintro ⟨_,_,(⟨h,rfl⟩|⟨_,_,rfl⟩)⟩ <;> aesop (add forward safe ZMod.val_cast_eq_val_of_lt)
 
 aegis_spec "core::integer::U64TryIntoNonZero::try_into" :=
   fun _ a ρ =>
@@ -307,12 +308,11 @@ aegis_prove "core::integer::u256_overflowing_add" :=
     <;> injection h₂ with h₂₁ h₂₂
     <;> rcases h₂₁ with rfl
     <;> rcases h₂₂ with rfl
-    <;> dsimp only
   -- Case: high value addition does not overflow
   · rcases h₃ with (⟨h₃,rfl⟩|⟨h₃,(⟨h₄,rfl⟩|⟨h₄,rfl⟩)⟩)
     -- Case: low value addition does not overflow
     · simp only [h₃, ite_true, add_zero, Prod.mk.injEq, true_and, Bool.toSierraBool]
-      have : ¬ U256_MOD ≤ UInt256.val (aₗ, aₕ) + UInt256.val (bₗ, bₕ) := by 
+      have : ¬ U256_MOD ≤ UInt256.val (aₗ, aₕ) + UInt256.val (bₗ, bₕ) := by
         rw [UInt256.val_add_val_lt_iff, not_or, not_le, not_and_or, not_le, not_le]
         simp_all
       simp [this, UInt256.add_def, h₃]
@@ -343,7 +343,7 @@ aegis_prove "core::integer::u256_overflowing_add" :=
 
 aegis_spec "core::integer::u256_checked_add" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ Unit) =>
-  (a.val + b.val < U256_MOD ∧ ρ = .inl (a + b)) 
+  (a.val + b.val < U256_MOD ∧ ρ = .inl (a + b))
   ∨ (U256_MOD ≤ a.val + b.val ∧ ρ = .inr ())
 
 aegis_prove "core::integer::u256_checked_add" :=
@@ -355,7 +355,7 @@ aegis_prove "core::integer::u256_checked_add" :=
 
 aegis_spec "core::integer::U256Add::add" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ _) =>
-  (a.val + b.val < U256_MOD ∧ ρ = .inl (a + b)) 
+  (a.val + b.val < U256_MOD ∧ ρ = .inl (a + b))
   ∨ (U256_MOD ≤ a.val + b.val ∧ ρ.isRight)
 
 aegis_prove "core::integer::U256Add::add" :=
@@ -405,7 +405,7 @@ aegis_prove "core::integer::u256_overflow_sub" :=
 
 aegis_spec "core::integer::u256_checked_sub" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ Unit) =>
-  (b.val ≤ a.val ∧ ρ = .inl (a - b)) 
+  (b.val ≤ a.val ∧ ρ = .inl (a - b))
   ∨ (a.val < b.val ∧ ρ = .inr ())
 
 aegis_prove "core::integer::u256_checked_sub" :=
@@ -417,7 +417,7 @@ aegis_prove "core::integer::u256_checked_sub" :=
 
 aegis_spec "core::integer::U256Sub::sub" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ _) =>
-  (b.val ≤ a.val ∧ ρ = .inl (a - b)) 
+  (b.val ≤ a.val ∧ ρ = .inl (a - b))
   ∨ (a.val < b.val ∧ ρ.isRight)
 
 aegis_prove "core::integer::U256Sub::sub" :=
@@ -466,7 +466,7 @@ aegis_prove "core::integer::u256_overflow_mul" :=
             rw [ZMod.val_mul_of_lt h₁] at h
             apply Nat.lt_of_div_lt_div (k := U128_MOD)
             rw [mul_add, Nat.add_div U128_MOD_pos]
-            have : ¬ U128_MOD ≤ ZMod.val aₗ * (U128_MOD * ZMod.val bₕ) % U128_MOD 
+            have : ¬ U128_MOD ≤ ZMod.val aₗ * (U128_MOD * ZMod.val bₕ) % U128_MOD
                 + ZMod.val aₗ * ZMod.val bₗ % U128_MOD := by
               rw [not_le, mul_comm U128_MOD, ← mul_assoc, Nat.mul_mod_left, zero_add]
               apply Nat.mod_lt _ U128_MOD_pos
@@ -478,11 +478,11 @@ aegis_prove "core::integer::u256_overflow_mul" :=
             rw [U128_MOD_mul_U128_MOD] at h₄
             apply le_trans h₄ _
             ring_nf
-            apply le_trans (Nat.add_le_add_left (Nat.mul_le_mul_right _ ZMod.val_mul_le) _)
+            apply le_trans (Nat.add_le_add_left (Nat.mul_le_mul_right _ (ZMod.val_mul_le _ _)) _)
             apply le_trans (Nat.add_le_add_right (Nat.mul_le_mul_right _ (ZMod.val_add_le _ _)) _)
             rw [ZMod.val_hmul, add_mul]
             apply le_trans (Nat.add_le_add_right (Nat.add_le_add_right (Nat.div_mul_le_self _ _) _) _)
-            apply le_trans (Nat.add_le_add_right (Nat.add_le_add_left (Nat.mul_le_mul_right _ ZMod.val_mul_le) _) _) _
+            apply le_trans (Nat.add_le_add_right (Nat.add_le_add_left (Nat.mul_le_mul_right _ (ZMod.val_mul_le _ _)) _) _) _
             ring_nf
             simp only [le_add_iff_nonneg_right, zero_le]
         · rcases h₄ with (⟨h₄,h₅⟩|⟨h₄,rfl⟩)
@@ -507,11 +507,11 @@ aegis_prove "core::integer::u256_overflow_mul" :=
               rw [U128_MOD_mul_U128_MOD] at h₅
               apply le_trans h₅ _
               ring_nf
-              apply le_trans (Nat.add_le_add_left (Nat.mul_le_mul_right _ ZMod.val_mul_le) _)
+              apply le_trans (Nat.add_le_add_left (Nat.mul_le_mul_right _ (ZMod.val_mul_le _ _)) _)
               apply le_trans (Nat.add_le_add_right (Nat.mul_le_mul_right _ (ZMod.val_add_le _ _)) _)
               rw [ZMod.val_hmul, add_mul]
               apply le_trans (Nat.add_le_add_right (Nat.add_le_add_right (Nat.div_mul_le_self _ _) _) _)
-              apply le_trans (Nat.add_le_add_right (Nat.add_le_add_left (Nat.mul_le_mul_right _ ZMod.val_mul_le) _) _) _
+              apply le_trans (Nat.add_le_add_right (Nat.add_le_add_left (Nat.mul_le_mul_right _ (ZMod.val_mul_le _ _)) _) _) _
               ring_nf
               simp only [le_add_iff_nonneg_right, zero_le]
           · simp only [UInt256.mul_def, Prod.mk.injEq, Bool.toSierraBool_decide_inr', true_and]
@@ -527,7 +527,7 @@ aegis_prove "core::integer::u256_overflow_mul" :=
     replace h := Nat.mul_le_mul_right U128_MOD h
     rw [add_mul, U128_MOD_mul_U128_MOD] at h; apply le_trans h; clear h
     apply le_trans (Nat.add_le_add_right (Nat.div_mul_le_self _ _) _)
-    apply le_trans (Nat.add_le_add_left (Nat.mul_le_mul_right _ ZMod.val_mul_le) _)
+    apply le_trans (Nat.add_le_add_left (Nat.mul_le_mul_right _ (ZMod.val_mul_le _ _)) _)
     ring_nf
     rw [add_assoc]
     simp only [le_add_iff_nonneg_right, zero_le]

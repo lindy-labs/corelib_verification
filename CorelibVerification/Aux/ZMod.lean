@@ -12,10 +12,6 @@ theorem ZMod.val_pos_of_ne_zero {a : ZMod n} [Fact (1 < n)] (h : a ≠ 0) : 0 < 
   rw [ZMod.val_eq_zero] at h
   contradiction
 
-theorem ZMod.val_mul_le {n : ℕ} {a b : ZMod n} : (a * b).val ≤ a.val * b.val := by
-  rw [val_mul]
-  apply Nat.mod_le
-
 theorem ZMod.val_pow {m n : ℕ} {a : ZMod n} [ilt : Fact (1 < n)] (h : a.val ^ m < n) :
     (a ^ m).val = a.val ^ m := by
   induction m with
@@ -36,7 +32,7 @@ theorem ZMod.val_pow_le {m n : ℕ} [Fact (1 < n)] {a : ZMod n} : (a ^ m).val �
   | zero => simp [ZMod.val_one]
   | succ m ih =>
     rw [pow_succ, pow_succ]
-    apply le_trans (ZMod.val_mul_le)
+    apply le_trans (ZMod.val_mul_le _ _)
     apply Nat.mul_le_mul_left _ ih
 
 instance : Fact (1 < U8_MOD) := ⟨by norm_num⟩
@@ -45,13 +41,11 @@ instance : Fact (1 < U128_MOD) := ⟨by norm_num⟩
 
 instance : NeZero PRIME := ⟨by norm_num⟩
 
+instance : Fact (1 < PRIME) := ⟨by norm_num⟩
+
 instance : NeZero CONTRACT_ADDRESS_MOD := ⟨by norm_num⟩
 
 instance : Fact (CONTRACT_ADDRESS_MOD < PRIME) := ⟨by norm_num⟩
-
-theorem ZMod.val_add_of_lt {n : ℕ} [NeZero n] {a b : ZMod n} (h : a.val + b.val < n) :
-    (a + b).val = a.val + b.val := by
-  rw [ZMod.val_add, Nat.mod_eq_of_lt h]
 
 theorem ZMod.val_add_of_ge {n : ℕ} [NeZero n] {a b : ZMod n} (h : a.val + b.val ≥ n) :
     (a + b).val + n = a.val + b.val := by
@@ -63,7 +57,7 @@ theorem ZMod.val_neg {n : ℕ} [nz : NeZero n] (a : ZMod n) [na : NeZero a] :
     (- a).val = n - a.val := by
   cases n with
   | zero => cases nz; simp_all
-  | succ n => 
+  | succ n =>
     symm
     apply Nat.sub_eq_of_eq_add
     rw [← ZMod.val_add_of_ge, neg_add_self, ZMod.val_zero, zero_add]
@@ -74,28 +68,6 @@ theorem ZMod.val_neg {n : ℕ} [nz : NeZero n] (a : ZMod n) [na : NeZero a] :
     have : a.val = 0 := by linarith only [this]
     rw [ZMod.val_eq_zero] at this
     exact absurd this na.out
-
-theorem ZMod.val_sub {n : ℕ} [NeZero n] {a b : ZMod n} (h : b.val ≤ a.val) :
-    (a - b).val = a.val - b.val := by
-  by_cases hb : b = 0
-  · cases hb; simp
-  · haveI : NeZero b := ⟨hb⟩
-    rw [sub_eq_add_neg, ZMod.val_add, ZMod.val_neg, ← Nat.add_sub_assoc (le_of_lt (ZMod.val_lt _)),
-      add_comm, Nat.add_sub_assoc h, Nat.add_mod_left]
-    apply Nat.mod_eq_of_lt (tsub_lt_of_lt (val_lt _))
-
-theorem ZMod.val_of_cast_of_lt {m n : ℕ} [nzm : NeZero m] [nzn : NeZero n] {a : ZMod m}
-    (h : a.val < n) : (a.cast : ZMod n).val = a.val := by
-  cases m with
-  | zero => cases nzm; simp_all
-  | succ m =>
-    cases n with
-    | zero => cases nzn; simp_all
-    | succ n => exact Fin.val_cast_of_lt h
-
-theorem ZMod.val_ne_zero {n : ℕ}  (a : ZMod n) : a.val ≠ 0 ↔ a ≠ 0 := by
-  rw [not_iff_not]
-  apply ZMod.val_eq_zero
 
 theorem ZMod.cast_rat_eq_zero_iff {m : ℕ} [NeZero m] (a : ZMod m) :
     (a : ℚ) = 0 ↔ a = 0 := by
@@ -122,17 +94,6 @@ theorem ZMod.cast_ZMod_ne_zero_iff_of_lt {m n : ℕ} [NeZero m] (h : m < n) (a :
     (a : ZMod n) ≠ 0 ↔ a ≠ 0 := by
   rw [not_iff_not]
   apply ZMod.cast_ZMod_eq_zero_iff_of_lt h
-
-theorem ZMod.cast_injective_of_lt {m n : ℕ} [nzm : NeZero m] (h : m < n) :
-  Function.Injective (@ZMod.cast (ZMod n) _ m) := by
-  cases m with
-  | zero => cases nzm; simp_all
-  | succ m =>
-    rintro ⟨x, hx⟩ ⟨y, hy⟩ f
-    simp only [ZMod.cast, ZMod.val, ZMod.nat_cast_eq_nat_cast_iff',
-      Nat.mod_eq_of_lt (lt_trans hx h), Nat.mod_eq_of_lt (lt_trans hy h)] at f
-    apply Fin.ext
-    exact f
 
 theorem Nat.mod_eq_of_le_of_lt {a b : ℕ} (h' : b ≤ a) (h'' : a < 2 * b) : a % b = a - b := by
   rw [two_mul] at h''
@@ -194,29 +155,6 @@ theorem ZMod.val_mul_val_eq_hmul {n : ℕ} [NeZero n] (a b : ZMod n) :
   rw [val_mul, val_hmul]
   symm
   apply Nat.div_add_mod (a.val * b.val)
-
-theorem ZMod.val_add_le {n : ℕ} (a b : ZMod n) : (a + b).val ≤ a.val + b.val := by
-  cases n
-  · simp [ZMod.val]; apply Int.natAbs_add_le
-  · simp [ZMod.val_add]; apply Nat.mod_le 
-
-theorem ZMod.val_mul_of_lt {n : ℕ} {a b : ZMod n} (h : a.val * b.val < n) :
-    (a * b).val = a.val * b.val := by
-  rw [ZMod.val_mul]
-  apply Nat.mod_eq_of_lt h
-
-theorem ZMod.val_nat_cast_of_lt {n a : ℕ} (h : a < n) : (a : ZMod n).val = a := by
-  rwa [ZMod.val_nat_cast, Nat.mod_eq_of_lt]
-
-theorem ZMod.cast_nat_cast_of_lt {m n : ℕ} [NeZero m] (h : m < n) (a : ℕ) :
-    ((a : ZMod m) : ZMod n) = a := by
-  rcases m with (_|m); cases NeZero.ne 0 rfl
-  haveI : NeZero n := sorry
-  apply ZMod.val_injective
-  simp
-  sorry
-
-#check ZMod.val_cast_of_lt
 
 theorem Nat.eq_zero_of_mul_lt_left {a b : ℕ} (h : b * a < a) : b = 0 := by
   rw [← not_le] at h
