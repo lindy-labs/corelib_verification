@@ -54,6 +54,7 @@ aegis_prove "core::integer::u128_checked_mul" := fun _ _ a b  _ ρ => by
   unfold «spec_core::integer::u128_checked_mul»
   simp only [Prod.mk.injEq, ne_eq, forall_exists_index, and_imp,
     forall_eq_apply_imp_iff', forall_eq]
+  --sierra_simp
   rintro (⟨h,rfl⟩|⟨h,rfl⟩)
   · rw [← ZMod.cast_zero (n := U128_MOD),
       (ZMod.cast_injective_of_lt U128_MOD_lt_PRIME.out).eq_iff, ZMod.hmul_eq_zero_iff] at h

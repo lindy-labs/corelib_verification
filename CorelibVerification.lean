@@ -15,10 +15,10 @@ aegis_spec "corelib_verification::main" :=
 aegis_prove "corelib_verification::main" :=
   fun _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ => True.intro
 
-aegis_spec "corelib_verification::main2" :=
+/-aegis_spec "corelib_verification::main2" :=
   fun _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ => True
 
 aegis_prove "corelib_verification::main2" :=
-  fun _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ => True.intro
+  fun _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ => True.intro-/
 
 aegis_complete

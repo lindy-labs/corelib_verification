@@ -13,6 +13,9 @@ use starknet::syscalls::{storage_read_syscall, storage_write_syscall};
 use starknet::storage_access::{StorageAccessU8, StorageAccessU32, StorageAccessU64, StorageAccessU128};
 use starknet::storage_access::{StorageAccessU256, StorageAccessBool, StorageAccessContractAddress};
 use core::hash::LegacyHash;
+use core::serde::{Felt252Serde, U128Serde, U64Serde, U32Serde, U8Serde, BoolSerde};
+use core::integer::{u256Serde};
+use core::serde::{ArraySerde};
 
 fn main(contract_address : ContractAddress,
   syscall_result_contract_address : SyscallResult<ContractAddress>,
@@ -190,4 +193,46 @@ fn main2(contract_address : ContractAddress,
     let x = LegacyHash::hash(0, (contract_address, contract_address));
     //core::hash::TupleSize2LegacyHash<core::integer::u32, core::integer::u32, core::hash::LegacyHashU32, core::hash::LegacyHashU32, core::integer::u32Drop, core::integer::u32Drop>::hash
     let x = LegacyHash::hash(0, (0_u32, 0_u32));
+    //core::serde::Felt252Serde::deserialize
+    let mut span_felt252: Span<felt252> = ref_array_felt252.span();
+    let x = Felt252Serde::deserialize(ref span_felt252);
+    //core::serde::U128Serde::serialize
+    U128Serde::serialize(@0_u128, ref ref_array_felt252);
+    //core::serde::U128Serde::deserialize
+    let x = U128Serde::deserialize(ref span_felt252);
+    //core::serde::U64Serde::serialize
+    U64Serde::serialize(@0_u64, ref ref_array_felt252);
+    //core::serde::U64Serde::deserialize
+    let x = U64Serde::deserialize(ref span_felt252);
+    //core::serde::U32Serde::serialize
+    U32Serde::serialize(@0_u32, ref ref_array_felt252);
+    //core::serde::U32Serde::deserialize
+    let x = U32Serde::deserialize(ref span_felt252);
+    //core::serde::U8Serde::serialize
+    U8Serde::serialize(@0_u8, ref ref_array_felt252);
+    //core::serde::U8Serde::deserialize
+    let x = U8Serde::deserialize(ref span_felt252);
+    //core::serde::BoolSerde::serialize
+    BoolSerde::serialize(@false, ref ref_array_felt252);
+    //core::serde::BoolSerde::deserialize
+    let x = BoolSerde::deserialize(ref span_felt252);
+    //core::integer::u256Serde::serialize
+    u256Serde::serialize(@0_u256, ref ref_array_felt252);
+    //core::integer::u256Serde::deserialize
+    let x = u256Serde::deserialize(ref span_felt252);
+    //core::serde::ArraySerde<core::felt252, core::serde::Felt252Serde, core::felt252Drop>::serialize
+    let x: Array<felt252> = array::array_new();
+    ArraySerde::serialize(@x, ref ref_array_felt252);
+    //core::serde::ArraySerde<core::felt252, core::serde::Felt252Serde, core::felt252Drop>::deserialize
+    let x: Option<Array<felt252>> = ArraySerde::deserialize(ref span_felt252);
+    //core::serde::ArraySerde<core::u64, core::serde::U64Serde, core::u64Drop>::serialize
+    let x: Array<u64> = array::array_new();
+    ArraySerde::serialize(@x, ref ref_array_felt252);
+    //core::serde::ArraySerde<core::u64, core::serde::U64Serde, core::u64Drop>::deserialize
+    let x: Option<Array<u64>> = ArraySerde::deserialize(ref span_felt252);
+    //core::serde::ArraySerde<core::u128, core::serde::U128Serde, core::u128Drop>::serialize
+    let x: Array<u128> = array::array_new();
+    ArraySerde::serialize(@x, ref ref_array_felt252);
+    //core::serde::ArraySerde<core::u128, core::serde::U128Serde, core::u128Drop>::deserialize
+    let x: Option<Array<u128>> = ArraySerde::deserialize(ref span_felt252);
 }
