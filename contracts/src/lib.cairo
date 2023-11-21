@@ -16,6 +16,7 @@ use core::hash::LegacyHash;
 use core::serde::{Felt252Serde, U128Serde, U64Serde, U32Serde, U8Serde, BoolSerde};
 use core::integer::{u256Serde};
 use core::serde::{ArraySerde};
+use core::starknet::contract_address::ContractAddressSerde;
 
 fn main(contract_address : ContractAddress,
   syscall_result_contract_address : SyscallResult<ContractAddress>,
@@ -235,4 +236,24 @@ fn main2(contract_address : ContractAddress,
     ArraySerde::serialize(@x, ref ref_array_felt252);
     //core::serde::ArraySerde<core::u128, core::serde::U128Serde, core::u128Drop>::deserialize
     let x: Option<Array<u128>> = ArraySerde::deserialize(ref span_felt252);
+}
+
+fn main3(contract_address : ContractAddress,
+  syscall_result_contract_address : SyscallResult<ContractAddress>,
+  syscall_result_u8 : SyscallResult<u8>,
+  syscall_result_u128 : SyscallResult<u128>,
+  syscall_result_unit : SyscallResult<()>,
+  syscall_result_box_execution_info : SyscallResult<Box<ExecutionInfo>>,
+  syscall_result_span_felt252 : SyscallResult<Span<felt252>>,
+  syscall_result_u256 : SyscallResult<u256>,
+  syscall_result_felt252 : SyscallResult<felt252>,
+  syscall_result_bool : SyscallResult<bool>,
+  storage_base_address : StorageBaseAddress,
+  storage_address : StorageAddress,
+  ref ref_array_felt252 : Array<felt252>) {
+    //core::starknet::contract_address::ContractAddressSerde::serialize
+    ContractAddressSerde::serialize(@contract_address, ref ref_array_felt252);
+    //core::starknet::contract_address::ContractAddressSerde::deserialize
+    let mut span_felt252: Span<felt252> = ref_array_felt252.span();
+    let x = ContractAddressSerde::deserialize(ref span_felt252);
 }
