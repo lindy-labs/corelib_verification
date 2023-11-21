@@ -127,6 +127,21 @@ fn main(contract_address : ContractAddress,
     let x = core::starknet::info::get_contract_address();
     //core::starknet::info::get_block_timestamp
     let x = core::starknet::info::get_block_timestamp();
+}
+
+fn main2(contract_address : ContractAddress,
+  syscall_result_contract_address : SyscallResult<ContractAddress>,
+  syscall_result_u8 : SyscallResult<u8>,
+  syscall_result_u128 : SyscallResult<u128>,
+  syscall_result_unit : SyscallResult<()>,
+  syscall_result_box_execution_info : SyscallResult<Box<ExecutionInfo>>,
+  syscall_result_span_felt252 : SyscallResult<Span<felt252>>,
+  syscall_result_u256 : SyscallResult<u256>,
+  syscall_result_felt252 : SyscallResult<felt252>,
+  syscall_result_bool : SyscallResult<bool>,
+  storage_base_address : StorageBaseAddress,
+  storage_address : StorageAddress,
+  ref ref_array_felt252 : Array<felt252>) {
     //core::starknet::SyscallResultTraitImpl<core::starknet::contract_address::ContractAddress>::unwrap_syscall
     let x = syscall_result_contract_address.unwrap_syscall();
     //core::starknet::SyscallResultTraitImpl<core::integer::u8>::unwrap_syscall
