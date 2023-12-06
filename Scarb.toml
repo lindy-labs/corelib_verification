@@ -1,0 +1,8 @@
+[package]
+name = "corelib_verification"
+version = "0.1.0"
+
+[dependencies]
+starknet = "2.3.1"
+
+[[target.starknet-contract]]
