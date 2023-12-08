@@ -156,9 +156,7 @@ theorem val_lt_val_iff : p.val < q.val ↔
       exact p.1.val_lt
     · rw [h']; apply Nat.add_lt_add_left h
 
-/-- Multiplication on `UInt256` as implemented by `u256_overflow_mul`. Note that this does *not*
-  coincide with the multiplication on `ZMod U256_MOD` because ignores multiplication of the high
-  parts.-/
+/-- Multiplication on `UInt256` as implemented by `u256_overflow_mul`. -/
 protected def mul : UInt256 where
   fst := p.1 * q.1
   snd := ZMod.hmul p.1 q.1 + p.1 * q.2 + p.2 * q.1
@@ -175,3 +173,5 @@ protected def zero : UInt256 where
 instance : Zero UInt256 := ⟨UInt256.zero⟩
 
 protected theorem zero_def : (0 : UInt256) = (0, 0) := rfl
+
+protected def ndiv : UInt256 where
