@@ -120,21 +120,6 @@ fn main(contract_address : ContractAddress,
     let x = core::starknet::info::get_contract_address();
     //core::starknet::info::get_block_timestamp
     let x = core::starknet::info::get_block_timestamp();
-}
-
-fn main2(contract_address : ContractAddress,
-  syscall_result_contract_address : SyscallResult<ContractAddress>,
-  syscall_result_u8 : SyscallResult<u8>,
-  syscall_result_u128 : SyscallResult<u128>,
-  syscall_result_unit : SyscallResult<()>,
-  syscall_result_box_execution_info : SyscallResult<Box<ExecutionInfo>>,
-  syscall_result_span_felt252 : SyscallResult<Span<felt252>>,
-  syscall_result_u256 : SyscallResult<u256>,
-  syscall_result_felt252 : SyscallResult<felt252>,
-  syscall_result_bool : SyscallResult<bool>,
-  storage_base_address : StorageBaseAddress,
-  storage_address : StorageAddress,
-  ref ref_array_felt252 : Array<felt252>) {
     //core::starknet::SyscallResultTraitImpl<core::starknet::contract_address::ContractAddress>::unwrap_syscall
     let x = syscall_result_contract_address.unwrap_syscall();
     //core::starknet::SyscallResultTraitImpl<core::integer::u8>::unwrap_syscall
@@ -162,7 +147,7 @@ fn main2(contract_address : ContractAddress,
     //core::starknet::storage_access::StorageAccessU8::read
     let x = Store::<u128>::read(0, storage_base_address).unwrap_syscall();
     //core::starknet::storage_access::StorageAccessU256::read
-    let x = Store::<u256>::read(0, storage_base_address).unwrap_syscall();
+    //let x = Store::<u256>::read(0, storage_base_address).unwrap_syscall();
     //core::starknet::storage_access::StorageAccessBool::read
     let x = Store::<bool>::read(0, storage_base_address).unwrap_syscall();
     //core::starknet::storage_access::StorageAccessContractAddress::read
@@ -183,8 +168,6 @@ fn main2(contract_address : ContractAddress,
     let x = core::hash::LegacyHash::hash(0, (contract_address, contract_address));
     //core::hash::TupleSize2LegacyHash<core::integer::u32, core::integer::u32, core::hash::LegacyHashU32, core::hash::LegacyHashU32, core::integer::u32Drop, core::integer::u32Drop>::hash
     let x = core::hash::LegacyHash::hash(0, (0_u32, 0_u32));
-
-
     //core::serde::Felt252Serde::deserialize
     let mut span_felt252: Span<felt252> = ref_array_felt252.span();
     let x = Felt252Serde::deserialize(ref span_felt252);
@@ -227,21 +210,6 @@ fn main2(contract_address : ContractAddress,
     Serde::<Array<u128>>::serialize(@x, ref ref_array_felt252);
     //core::serde::ArraySerde<core::u128, core::serde::U128Serde, core::u128Drop>::deserialize
     let x: Option<Array<u128>> = Serde::<Array<u128>>::deserialize(ref span_felt252);
-}
-
-fn main3(contract_address : ContractAddress,
-  syscall_result_contract_address : SyscallResult<ContractAddress>,
-  syscall_result_u8 : SyscallResult<u8>,
-  syscall_result_u128 : SyscallResult<u128>,
-  syscall_result_unit : SyscallResult<()>,
-  syscall_result_box_execution_info : SyscallResult<Box<ExecutionInfo>>,
-  syscall_result_span_felt252 : SyscallResult<Span<felt252>>,
-  syscall_result_u256 : SyscallResult<u256>,
-  syscall_result_felt252 : SyscallResult<felt252>,
-  syscall_result_bool : SyscallResult<bool>,
-  storage_base_address : StorageBaseAddress,
-  storage_address : StorageAddress,
-  ref ref_array_felt252 : Array<felt252>) {
     //core::starknet::contract_address::ContractAddressSerde::serialize
     ContractAddressSerde::serialize(@contract_address, ref ref_array_felt252);
     //core::starknet::contract_address::ContractAddressSerde::deserialize
