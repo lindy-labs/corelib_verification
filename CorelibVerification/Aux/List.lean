@@ -17,7 +17,7 @@ theorem dropWhileN_zero (xs : List α) : xs.dropWhileN p 0 = xs := by
   rfl
 
 @[simp]
-theorem dropWhileN_cons_succ (x : α) (xs : List α) (p n) : 
+theorem dropWhileN_cons_succ (x : α) (xs : List α) (p n) :
     (x::xs).dropWhileN p n.succ = if p x then xs.dropWhileN p n else x::xs := by
   simp only [dropWhileN, dropWhile, drop]
   aesop
@@ -76,7 +76,7 @@ theorem length_takeWhileN (as : List α) :
     · simp
     · simp only [takeWhileN_cons_succ, takeWhile, ge_iff_le]
       split_ifs with h
-      · simp only [length_cons, h, ge_iff_le, ih, Nat.min_succ_succ]
+      · simp only [length_cons, h, ge_iff_le, ih, Nat.succ_min_succ]
       · simp [h]
 
 theorem head_take {as : List α} (has : as ≠ []) {n : ℕ} (hn : 0 < n) :

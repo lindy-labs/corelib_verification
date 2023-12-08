@@ -4,7 +4,7 @@ import Mathlib.Tactic.LibrarySearch
 
 open Sierra
 
-instance : NeZero PRIME := ⟨by norm_num⟩
+instance : NeZero PRIME := ⟨by unfold PRIME; norm_num⟩
 
 theorem ZMod.val_pos_of_ne_zero {a : ZMod n} [Fact (1 < n)] (h : a ≠ 0) : 0 < a.val := by
   apply Nat.pos_of_ne_zero
@@ -35,17 +35,17 @@ theorem ZMod.val_pow_le {m n : ℕ} [Fact (1 < n)] {a : ZMod n} : (a ^ m).val �
     apply le_trans (ZMod.val_mul_le _ _)
     apply Nat.mul_le_mul_left _ ih
 
-instance : Fact (1 < U8_MOD) := ⟨by norm_num⟩
+instance : Fact (1 < U8_MOD) := ⟨by unfold U8_MOD; norm_num⟩
 
-instance : Fact (1 < U128_MOD) := ⟨by norm_num⟩
+instance : Fact (1 < U128_MOD) := ⟨by unfold U128_MOD; norm_num⟩
 
-instance : NeZero PRIME := ⟨by norm_num⟩
+instance : NeZero PRIME := ⟨by unfold PRIME; norm_num⟩
 
-instance : Fact (1 < PRIME) := ⟨by norm_num⟩
+instance : Fact (1 < PRIME) := ⟨by unfold PRIME; norm_num⟩
 
-instance : NeZero CONTRACT_ADDRESS_MOD := ⟨by norm_num⟩
+instance : NeZero CONTRACT_ADDRESS_MOD := ⟨by unfold CONTRACT_ADDRESS_MOD; norm_num⟩
 
-instance : Fact (CONTRACT_ADDRESS_MOD < PRIME) := ⟨by norm_num⟩
+instance : Fact (CONTRACT_ADDRESS_MOD < PRIME) := ⟨by norm_num [CONTRACT_ADDRESS_MOD, PRIME]⟩
 
 theorem ZMod.val_add_of_ge {n : ℕ} [NeZero n] {a b : ZMod n} (h : a.val + b.val ≥ n) :
     (a + b).val + n = a.val + b.val := by
@@ -125,12 +125,12 @@ theorem Nat.mul_add_div_eq_of_lt {a b c : ℕ} (h : c < b) : (b * a + c) / b = a
 theorem ZMod.hmul_eq_zero_iff {n : ℕ} [NeZero n] (a b : ZMod n) :
     (ZMod.hmul a b = 0) ↔ (a.val * b.val < n) := by
   cases n
-  · have := NeZero.out (n := 0); simp_all only [Nat.zero_eq]
+  · simp_all only [Nat.zero_eq, neZero_zero_iff_false]
   · constructor
     · simp only [hmul]
       intro h
       injection h with h
-      simp only [Nat.zero_mod, add_pos_iff, or_true, Nat.div_eq_zero_iff] at h
+      simp only [Nat.zero_mod, add_pos_iff, or_true, Nat.div_eq_zero_iff (Fin.pos a)] at h
       exact h
     · intro h
       simp only [hmul]
@@ -146,7 +146,7 @@ theorem ZMod.hmul_ne_zero_iff {n : ℕ} [NeZero n] (a b : ZMod n) :
 theorem ZMod.val_hmul {n : ℕ} [NeZero n] (a b : ZMod n) :
     (ZMod.hmul a b).val = a.val * b.val / n := by
   cases n
-  · have := NeZero.out (n := 0); simp_all only [Nat.zero_eq]
+  · simp_all only [Nat.zero_eq, neZero_zero_iff_false]
   · simp only [ZMod.hmul, ZMod.val]
 
 theorem ZMod.val_mul_val_eq_hmul {n : ℕ} [NeZero n] (a b : ZMod n) :
