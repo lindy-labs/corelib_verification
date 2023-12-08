@@ -532,8 +532,6 @@ theorem U128_MOD_mul_U128_MOD : U128_MOD * U128_MOD = U256_MOD := rfl
 
 theorem U128_MOD_pos : 0 < U128_MOD := by norm_num [U128_MOD]
 
-
-
 aegis_prove "core::integer::u256_overflow_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) => by
   rcases a with ⟨aₗ, aₕ⟩
@@ -573,7 +571,9 @@ aegis_prove "core::integer::u256_overflow_mul" :=
             ring_nf
             simp only [le_add_iff_nonneg_right, zero_le]
         · rcases h₄ with (⟨h₄,rfl⟩|⟨h₄,rfl⟩)
-          · sorry
+          · simp only [UInt256.mul_def, Prod.mk.injEq, Bool.toSierraBool_decide_inr', true_and]
+            simp only [UInt256.val, ZMod.val_hmul, ZMod.hmul_ne_zero_iff] at *
+            sorry
           · simp only [UInt256.mul_def, Prod.mk.injEq, Bool.toSierraBool_decide_inr', true_and]
             simp only [UInt256.val, ZMod.val_hmul, ZMod.hmul_ne_zero_iff] at *
             rw [add_mul, mul_add, mul_add]
@@ -581,7 +581,7 @@ aegis_prove "core::integer::u256_overflow_mul" :=
             ring_nf
             rw [mul_assoc, pow_two, U128_MOD_mul_U128_MOD]
             apply Nat.le_mul_of_pos_right
-            simp only [zero_lt_mul_left, h₃, h₄]
+            rw [zero_lt_mul_left h₃]
             sorry
       · simp only [UInt256.mul_def, Prod.mk.injEq, Bool.toSierraBool_decide_inr', true_and]
         simp only [UInt256.val, ZMod.val_hmul, ZMod.hmul_ne_zero_iff] at *
@@ -654,19 +654,14 @@ aegis_prove "core::integer::U256PartialOrd::lt" :=
     apply lt_of_lt_of_le aₗ.val_lt
     simp
 
-#exit
-
-aegis_info "core::integer::u256_safe_div_rem"
-
 aegis_spec "core::integer::u256_safe_div_rem" :=
-  fun _ _ (a b : UInt256) _ ρ =>
-  True
+  fun _ _ (a b : UInt256) _ (ρ : UInt256 × UInt256) =>
+  ρ.1.val = a.val / b.val ∧ ρ.2.val = a.val % b.val
 
 aegis_prove "core::integer::u256_safe_div_rem" :=
   fun _ _ (a b : UInt256) _ ρ => by
-  sorry
-
-#check ZMod.ndiv
+  unfold «spec_core::integer::u256_safe_div_rem»
+  aesop
 
 aegis_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u256>>::expect" :=
   fun _ a err ρ =>
@@ -686,15 +681,15 @@ aegis_prove "core::integer::U256Div::div" :=
   unfold «spec_core::integer::U256Div::div»
   simp only [UInt256.val, UInt256.zero_def]
   rcases b with ⟨bₗ,bₕ⟩; dsimp only
-  rintro ⟨_,_,_,_,_,_,_,(⟨h,rfl⟩|⟨rfl,rfl,h⟩),h'⟩
+  rintro ⟨_,_,_,_,_,_,_,_,(⟨h,rfl⟩|⟨rfl,rfl,h⟩),h'⟩
   · left
     rcases h' with (⟨he,h'⟩|h')
     · injection he with he; cases he
-      rcases h' with (⟨he,h',-,rfl⟩|h')
-      · injection he with he; cases he
-        constructor
-        · intro h; injection h; simp_all
-        · exact ⟨_,rfl,h'⟩
-      · simp at h'
+      simp only [Sum.map_inl, id_eq, Sum.inl.injEq, false_and, or_false] at h'
+      rcases h' with ⟨rfl,_,_,rfl,rfl⟩
+      simp_all only [ne_eq, Sum.inl.injEq, exists_eq_left', and_true]
+      intro h
+      injection h with h₁ h₂; cases h₁; cases h₂
+      simp at h
     · simp at h'
   · right; aesop

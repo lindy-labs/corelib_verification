@@ -173,5 +173,3 @@ protected def zero : UInt256 where
 instance : Zero UInt256 := ⟨UInt256.zero⟩
 
 protected theorem zero_def : (0 : UInt256) = (0, 0) := rfl
-
-protected def ndiv : UInt256 where
