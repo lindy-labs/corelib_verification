@@ -487,10 +487,6 @@ aegis_prove "core::integer::U256Sub::sub" :=
   · aesop
   · aesop
 
-aegis_spec "core::integer::u256_overflow_mul" :=
-  fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) =>
-  ρ = (a * b, Bool.toSierraBool (U256_MOD ≤ a.val * b.val))
-
 aegis_spec "core::integer::U128PartialEq::eq" :=
   fun _ a b ρ =>
   ρ = (Bool.toSierraBool (a = b))
@@ -531,6 +527,10 @@ aegis_prove "core::integer::U128PartialOrd::lt" :=
 theorem U128_MOD_mul_U128_MOD : U128_MOD * U128_MOD = U256_MOD := rfl
 
 theorem U128_MOD_pos : 0 < U128_MOD := by norm_num [U128_MOD]
+
+aegis_spec "core::integer::u256_overflow_mul" :=
+  fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) =>
+  ρ = (a * b, Bool.toSierraBool (U256_MOD ≤ a.val * b.val))
 
 aegis_prove "core::integer::u256_overflow_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) => by
@@ -573,16 +573,17 @@ aegis_prove "core::integer::u256_overflow_mul" :=
         · rcases h₄ with (⟨h₄,rfl⟩|⟨h₄,rfl⟩)
           · simp only [UInt256.mul_def, Prod.mk.injEq, Bool.toSierraBool_decide_inr', true_and]
             simp only [UInt256.val, ZMod.val_hmul, ZMod.hmul_ne_zero_iff] at *
+            congr 2
             sorry
           · simp only [UInt256.mul_def, Prod.mk.injEq, Bool.toSierraBool_decide_inr', true_and]
-            simp only [UInt256.val, ZMod.val_hmul, ZMod.hmul_ne_zero_iff] at *
+            simp only [UInt256.val, ZMod.val_hmul] at *
             rw [add_mul, mul_add, mul_add]
+            have h₄' : 0 < bₕ.val := sorry
             apply Nat.le_add_of_le_left; apply Nat.le_add_of_le_left
             ring_nf
             rw [mul_assoc, pow_two, U128_MOD_mul_U128_MOD]
             apply Nat.le_mul_of_pos_right
-            rw [zero_lt_mul_left h₃]
-            sorry
+            rwa [zero_lt_mul_left h₃]
       · simp only [UInt256.mul_def, Prod.mk.injEq, Bool.toSierraBool_decide_inr', true_and]
         simp only [UInt256.val, ZMod.val_hmul, ZMod.hmul_ne_zero_iff] at *
         ring_nf
