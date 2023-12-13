@@ -526,23 +526,42 @@ aegis_prove "core::integer::U128PartialOrd::lt" :=
 
 theorem U128_MOD_mul_U128_MOD : U128_MOD * U128_MOD = U256_MOD := rfl
 
+theorem U256_MOD_div_U128_MOD : U256_MOD / U128_MOD = U128_MOD := rfl
+
 theorem U128_MOD_pos : 0 < U128_MOD := by norm_num [U128_MOD]
 
 aegis_spec "core::integer::u256_overflow_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) =>
   ρ = (a * b, Bool.toSierraBool (U256_MOD ≤ a.val * b.val))
 
+syntax "sierra_simp''" : tactic
+macro_rules
+| `(tactic|sierra_simp'') =>
+  `(tactic|
+    simp only [Prod.mk.inj_iff, and_assoc, Bool.coe_toSierraBool, Bool.toSierraBool_coe,
+      exists_and_left, exists_and_right, exists_eq_left, exists_eq_right, exists_eq_right',
+      exists_eq_left', not, or, and,
+      SierraBool_toBool_inl, SierraBool_toBool_inr, Bool.toSierraBool_true, Bool.toSierraBool_false,
+      Int.ofNat_eq_coe, Nat.cast_one, Nat.cast_zero, Int.cast_zero, ZMod.val_zero,
+      exists_or, exists_const, ← or_and_right, ne_or_eq, true_and, false_and, eq_or_ne, and_true,
+      le_or_gt, lt_or_ge, lt_or_le, le_or_lt, and_false, false_or, or_false,
+      Bool.toSierraBool_decide_inl', Bool.toSierraBool_decide_inr',
+      Bool.toSierraBool_decide_inl, Bool.toSierraBool_decide_inr,
+      not_ne_iff, Nat.not_lt];
+    try simp only [← exists_and_left, ← exists_and_right, ← exists_or])
+
+-- TODO: Investigate why this has become longer after port to Cairo 2
 aegis_prove "core::integer::u256_overflow_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) => by
   rcases a with ⟨aₗ, aₕ⟩
   rcases b with ⟨bₗ, bₕ⟩
   unfold «spec_core::integer::u256_overflow_mul»
   sierra_simp'
-  rintro (⟨h,h₁⟩|⟨h,rfl⟩)
-  · rcases h₁ with (⟨h₁,h₂⟩|⟨h₁,rfl⟩)
-    · rcases h₂ with (⟨h₂,h₃⟩|⟨h₂,rfl⟩)
-      · rcases h₃ with (⟨h₃,h₄⟩|⟨h₃,h₄⟩)
-        · rcases h₄ with (⟨h₄,rfl⟩|⟨h₄,rfl⟩)
+  rintro (⟨h,h₁⟩|⟨h,rfl⟩)  -- Match on `u128_overflowing_add(high1, high2)`
+  · rcases h₁ with (⟨h₁,h₂⟩|⟨h₁,rfl⟩)  -- Match on `overflow_value1 != 0_u128`
+    · rcases h₂ with (⟨h₂,h₃⟩|⟨h₂,rfl⟩)  -- Match on `overflow_value2 != 0_u128`
+      · rcases h₃ with (⟨h₃,h₄⟩|⟨h₃,h₄⟩)  -- Match on `lhs.high > 0`
+        · rcases h₄ with (⟨h₄,rfl⟩|⟨h₄,rfl⟩)  -- Match on `u128_overflowing_add(high, high3)`
           · simp only [UInt256.mul_def, Prod.mk.injEq, Bool.toSierraBool_decide_inl', not_le, true_and]
             simp only [UInt256.val, ZMod.val_hmul, ZMod.hmul_ne_zero_iff] at *
             rw [nonpos_iff_eq_zero, ZMod.val_eq_zero] at h₃; cases h₃
@@ -570,20 +589,35 @@ aegis_prove "core::integer::u256_overflow_mul" :=
             apply le_trans (Nat.add_le_add_right (Nat.add_le_add_left (Nat.mul_le_mul_right _ (ZMod.val_mul_le _ _)) _) _) _
             ring_nf
             simp only [le_add_iff_nonneg_right, zero_le]
-        · rcases h₄ with (⟨h₄,rfl⟩|⟨h₄,rfl⟩)
+        · rw [ZMod.hmul_eq_zero_iff'] at h₁ h₂
+          rcases h₄ with (⟨h₄,rfl⟩|⟨h₄,rfl⟩)  -- Match on `u128_overflowing_add(high, high3)`
           · simp only [UInt256.mul_def, Prod.mk.injEq, Bool.toSierraBool_decide_inr', true_and]
-            simp only [UInt256.val, ZMod.val_hmul, ZMod.hmul_ne_zero_iff] at *
-            congr 2
-            sorry
+            simp only [UInt256.val, ZMod.val_hmul]
+            rw [h₂, ZMod.val_add_of_lt h, h₁, ZMod.val_hmul] at h₄ --; clear h h₁ h₂
+            congr 2; apply propext
+            by_cases hbₕ : 0 < bₕ.val
+            · simp only [hbₕ, true_iff]
+              rw [add_mul, mul_add]
+              apply Nat.le_add_of_le_left; apply Nat.le_add_of_le_left
+              ring_nf
+              rw [pow_two, U128_MOD_mul_U128_MOD]
+              apply le_trans (Nat.le_mul_of_pos_right h₃) (Nat.le_mul_of_pos_right hbₕ)
+            · simp only [not_lt, nonpos_iff_eq_zero, ZMod.val_eq_zero] at hbₕ; subst hbₕ
+              simp only [ZMod.val_zero, lt_self_iff_false, mul_zero, zero_add, false_iff, not_le]
+              simp only [ZMod.val_zero, mul_zero, add_zero] at h₄
+              apply Nat.lt_of_div_lt_div (k := U128_MOD)
+              rwa [add_mul, U256_MOD_div_U128_MOD, mul_assoc,
+                Nat.add_div_of_dvd_right (by norm_num), Nat.mul_div_cancel_left _ U128_MOD_pos,
+                add_comm]
           · simp only [UInt256.mul_def, Prod.mk.injEq, Bool.toSierraBool_decide_inr', true_and]
-            simp only [UInt256.val, ZMod.val_hmul] at *
-            rw [add_mul, mul_add, mul_add]
-            have h₄' : 0 < bₕ.val := sorry
-            apply Nat.le_add_of_le_left; apply Nat.le_add_of_le_left
+            simp only [UInt256.val]
+            replace h₄ := Nat.mul_le_mul_left U128_MOD h₄
+            rw [h₂, ZMod.val_add_of_lt h, h₁, ZMod.val_hmul, U128_MOD_mul_U128_MOD] at h₄
+            apply le_trans h₄; clear h₄
             ring_nf
-            rw [mul_assoc, pow_two, U128_MOD_mul_U128_MOD]
-            apply Nat.le_mul_of_pos_right
-            rwa [zero_lt_mul_left h₃]
+            simp only [add_assoc]
+            apply Nat.add_le_add_left; apply Nat.add_le_add_left
+            apply le_trans (Nat.mul_div_le _ _) (Nat.le_add_left _ _)
       · simp only [UInt256.mul_def, Prod.mk.injEq, Bool.toSierraBool_decide_inr', true_and]
         simp only [UInt256.val, ZMod.val_hmul, ZMod.hmul_ne_zero_iff] at *
         ring_nf

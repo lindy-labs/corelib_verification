@@ -122,6 +122,12 @@ theorem Nat.mul_add_div_eq_of_lt {a b c : ℕ} (h : c < b) : (b * a + c) / b = a
   have : ¬ b ≤ c % b := by rw [not_le]; apply mod_lt _ (Nat.zero_lt_of_lt h)
   simp [Nat.div_eq_of_lt h, this]
 
+theorem ZMod.val_mul_iff_lt {n : ℕ} [NeZero n] (a b : ZMod n) :
+    (a * b).val = a.val * b.val ↔ a.val * b.val < n := by
+  constructor <;> intro h
+  · rw [←h]; apply ZMod.val_lt
+  · apply ZMod.val_mul_of_lt h
+
 theorem ZMod.hmul_eq_zero_iff {n : ℕ} [NeZero n] (a b : ZMod n) :
     (ZMod.hmul a b = 0) ↔ (a.val * b.val < n) := by
   cases n
@@ -137,6 +143,10 @@ theorem ZMod.hmul_eq_zero_iff {n : ℕ} [NeZero n] (a b : ZMod n) :
       apply Fin.ext
       rw [Fin.val_zero]
       simp [Nat.div_eq_zero_iff, h]
+
+theorem ZMod.hmul_eq_zero_iff' {n : ℕ} [NeZero n] (a b : ZMod n) :
+    (ZMod.hmul a b = 0) ↔ ((a * b).val = a.val * b.val) :=
+  by rw [ZMod.hmul_eq_zero_iff, ZMod.val_mul_iff_lt]
 
 theorem ZMod.hmul_ne_zero_iff {n : ℕ} [NeZero n] (a b : ZMod n) :
     (ZMod.hmul a b ≠ 0) ↔ (n ≤ a.val * b.val) := by
