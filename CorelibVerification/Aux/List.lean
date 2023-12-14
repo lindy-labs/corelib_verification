@@ -98,3 +98,6 @@ theorem all_tail {as : List α} (h : as.all p) : as.tail.all p := by
   simp only [all_eq_true] at *
   intro x hx
   apply h _ (mem_of_mem_tail hx)
+
+theorem head?_eq_none_iff (as : List α) : as.head? = .none ↔ as = [] := by
+  cases as <;> simp

@@ -430,7 +430,7 @@ aegis_prove "core::array::deserialize_array_helper::<core::felt252, core::Felt25
             simpa only [add_mul, one_mul, ← Nat.le_sub_iff_add_le hle]
           simp only [h₁, ge_iff_le, and_false, ite_self, Sum.isRight_inr, ite_false]
       -- Case: `s = []`
-      · have : s = [] := by sorry --simp only [Option.toSum, Option.elim, List.head?] at h; aesop
+      · have : s = [] := by rwa [Option.inr_eq_toSum_iff, List.head?_eq_none_iff] at h
         simp [this, hne, hle]
   -- Case: Not enough gas for one run
   · aesop
@@ -454,4 +454,4 @@ aegis_prove "core::array::ArraySerde::<core::felt252, core::Felt252Serde, core::
   unfold «spec_core::array::ArraySerde::<core::felt252, core::Felt252Serde, core::felt252Drop>::deserialize»
   generalize Metadata.costs m id!"core::array::deserialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>" = c
   sierra_simp'
-  sorry --aesop
+  aesop (add simp [List.head!_eq_head?, List.head?_eq_head, Option.iget_some])
