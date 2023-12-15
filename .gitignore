@@ -1,2 +1,3 @@
 /build
 /lake-packages/*
+/contracts/target/

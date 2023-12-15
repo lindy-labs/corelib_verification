@@ -10,17 +10,17 @@ def U256_MOD := 1157920892373161954235709850086879078532699846656405640394575840
   part. -/
 def UInt256 := UInt128 × UInt128
 
-instance U128_MOD_pos : Fact (U128_MOD > 0) := ⟨by norm_num⟩
+instance U128_MOD_pos : Fact (U128_MOD > 0) := ⟨by norm_num[U128_MOD]⟩
 
-instance one_le_U128_MOD : Fact (1 ≤ U128_MOD) := ⟨by norm_num⟩
+instance one_le_U128_MOD : Fact (1 ≤ U128_MOD) := ⟨by norm_num[U128_MOD]⟩
 
-instance : NeZero U256_MOD := ⟨by norm_num⟩
+instance : NeZero U256_MOD := ⟨by norm_num[U256_MOD]⟩
 
-theorem U256_MOD_eq_mul : U256_MOD = U128_MOD * U128_MOD := by norm_num
+theorem U256_MOD_eq_mul : U256_MOD = U128_MOD * U128_MOD := by norm_num[U128_MOD, U256_MOD]
 
-@[simp] theorem U256_MOD_div : U256_MOD / U128_MOD = U128_MOD := by norm_num
+@[simp] theorem U256_MOD_div : U256_MOD / U128_MOD = U128_MOD := by norm_num[U128_MOD, U256_MOD]
 
-theorem U128_MOD_dvd_U256_MOD : U128_MOD ∣ U256_MOD := by norm_num
+theorem U128_MOD_dvd_U256_MOD : U128_MOD ∣ U256_MOD := by norm_num[U128_MOD, U256_MOD]
 
 namespace UInt256
 
@@ -36,14 +36,14 @@ theorem val_lt : p.val < U256_MOD := by
     apply (mul_le_mul_left U128_MOD_pos.out).mpr
     apply Nat.le_of_lt_succ
     apply ZMod.val_lt
-  norm_num
+  norm_num [U256_MOD, U128_MOD]
 
 theorem val_lt_U128_MOD_iff : p.val < U128_MOD ↔ p.2 = 0 := by
   simp only [val]
   constructor
   · intro h
     have := Nat.lt_of_add_lt h
-    simp_all only [gt_iff_lt, mul_lt_iff_lt_one_right, Nat.lt_one_iff, ZMod.val_eq_zero]
+    rwa [mul_lt_iff_lt_one_right U128_MOD_pos.out, @Nat.lt_one_iff, ZMod.val_eq_zero] at this
   · intro h; rw [h]
     simp only [ZMod.val_zero, mul_zero, zero_add]
     apply p.1.val_lt
@@ -64,7 +64,7 @@ protected theorem add_def :
 
 theorem val_add_of_lt (h : p.val + q.val < U256_MOD) : (p + q).val = p.val + q.val := by
   rcases p with ⟨pₗ, pₕ⟩; rcases q with ⟨qₗ, qₕ⟩
-  simp [val, UInt256.add_def] at h ⊢ 
+  simp [val, UInt256.add_def] at h ⊢
   split_ifs with hlt
   · rw [add_zero, ZMod.val_add_of_lt hlt]
     by_cases hlt' : pₕ.val + qₕ.val < U128_MOD
@@ -77,7 +77,7 @@ theorem val_add_of_lt (h : p.val + q.val < U256_MOD) : (p + q).val = p.val + q.v
       apply le_trans _ (add_le_add_right (add_le_add_right (Nat.mul_le_mul_left _ hlt') _) _)
       apply le_trans _ (Nat.le_add_right _ _)
       apply le_trans _ (Nat.le_add_right _ _)
-      norm_num
+      exact le_of_eq U256_MOD_eq_mul
   · rw [not_lt] at hlt
     ring_nf at h; rw [← mul_add] at h
     have hlt'' : pₕ.val + qₕ.val < U128_MOD := by
@@ -100,8 +100,8 @@ theorem val_add_of_lt (h : p.val + q.val < U256_MOD) : (p + q).val = p.val + q.v
 
 -- TODO generalize the following lemma
 /-- Characterization of overflow in U256. -/
-theorem val_add_val_lt_iff : U256_MOD ≤ p.val + q.val ↔ 
-    (U128_MOD ≤ p.2.val + q.2.val 
+theorem val_add_val_lt_iff : U256_MOD ≤ p.val + q.val ↔
+    (U128_MOD ≤ p.2.val + q.2.val
     ∨ U128_MOD ≤ p.1.val + q.1.val ∧ U128_MOD ≤ p.2.val + q.2.val + 1) := by
   constructor
   · rw [← not_imp_not, not_le, not_or, not_le, not_and_or, not_le, not_le]
@@ -109,17 +109,18 @@ theorem val_add_val_lt_iff : U256_MOD ≤ p.val + q.val ↔
     · rw [Nat.lt_iff_le_pred U128_MOD_pos.out] at h h'
       apply lt_of_le_of_lt (Nat.add_le_add_left h' _)
       apply lt_of_le_of_lt (Nat.add_le_add_right (Nat.mul_le_mul_left _ h) _) _
-      norm_num
-    · replace h' := Nat.lt_sub_of_add_lt h'; rw [Nat.lt_iff_le_pred (by norm_num)] at h'
-      have h := Nat.add_lt_add p.1.val_lt q.1.val_lt; rw [Nat.lt_iff_le_pred (by norm_num)] at h
+      norm_num [U128_MOD, U256_MOD]
+    · replace h' := Nat.lt_sub_of_add_lt h'; rw [Nat.lt_iff_le_pred (by norm_num [U128_MOD])] at h'
+      have h := Nat.add_lt_add p.1.val_lt q.1.val_lt
+      rw [Nat.lt_iff_le_pred (by norm_num [U128_MOD, U256_MOD])] at h
       apply lt_of_le_of_lt (Nat.add_le_add_left h _)
       apply lt_of_le_of_lt (Nat.add_le_add_right (Nat.mul_le_mul_left _ h') _) _
-      norm_num
+      norm_num [U128_MOD, U256_MOD]
   · rintro (h|⟨h,h'⟩) <;> simp only [val] <;> ring_nf <;> rw [add_assoc, ← mul_add]
     · exact Nat.le_add_of_le_left (Nat.mul_le_mul_left U128_MOD h)
     · refine le_trans ?_ (Nat.add_le_add_left h _)
       refine le_trans ?_ (Nat.add_le_add_right (Nat.mul_le_mul_left _ (Nat.sub_le_of_le_add h')) _)
-      norm_num
+      norm_num [U128_MOD, U256_MOD]
 
 protected def sub : UInt256 where
   fst := p.1 - q.1
@@ -140,7 +141,7 @@ theorem val_lt_val_iff : p.val < q.val ↔
       apply Nat.add_le_add_left h'
     · replace h := Nat.lt_of_le_of_ne h (Ne.symm h')
       rw [← Nat.add_one_le_iff] at h
-      apply le_trans _ (Nat.add_le_add_right (Nat.mul_le_mul_left _ h) _) 
+      apply le_trans _ (Nat.add_le_add_right (Nat.mul_le_mul_left _ h) _)
       rw [mul_add, mul_one, add_assoc]
       apply Nat.add_le_add_left
       apply Nat.le_add_of_le_left
@@ -155,9 +156,7 @@ theorem val_lt_val_iff : p.val < q.val ↔
       exact p.1.val_lt
     · rw [h']; apply Nat.add_lt_add_left h
 
-/-- Multiplication on `UInt256` as implemented by `u256_overflow_mul`. Note that this does *not*
-  coincide with the multiplication on `ZMod U256_MOD` because ignores multiplication of the high
-  parts.-/
+/-- Multiplication on `UInt256` as implemented by `u256_overflow_mul`. -/
 protected def mul : UInt256 where
   fst := p.1 * q.1
   snd := ZMod.hmul p.1 q.1 + p.1 * q.2 + p.2 * q.1

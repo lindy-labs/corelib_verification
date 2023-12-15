@@ -34,3 +34,12 @@ aegis_prove "core::starknet::contract_address::ContractAddressSerde::deserialize
   fun _ _ a _ ρ₁ ρ₂ => by
   unfold «spec_core::starknet::contract_address::ContractAddressSerde::deserialize»
   aesop (add simp [Option.inl_eq_toSum_iff, Option.inr_eq_toSum_iff])
+
+aegis_spec "core::option::OptionTraitImpl<core::starknet::contract_address::ContractAddress>::expect" :=
+  fun _ a b ρ =>
+  ρ = a.map id fun _ => ((), [b])
+
+aegis_prove "core::option::OptionTraitImpl<core::starknet::contract_address::ContractAddress>::expect" :=
+  fun _ a b ρ => by
+  unfold «spec_core::option::OptionTraitImpl<core::starknet::contract_address::ContractAddress>::expect»
+  aesop

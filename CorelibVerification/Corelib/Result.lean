@@ -1,4 +1,4 @@
-import CorelibVerification.Load
+import CorelibVerification.Corelib.Lib
 
 aegis_spec "core::result::ResultTraitImpl<core::integer::u32, core::integer::u32>::expect<core::integer::u32Drop>" :=
   fun _ a _ ρ =>
