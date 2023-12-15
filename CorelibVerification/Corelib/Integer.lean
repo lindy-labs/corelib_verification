@@ -348,6 +348,24 @@ aegis_prove "core::integer::U128Add::add" :=
   unfold «spec_core::integer::U128Add::add»
   aesop
 
+aegis_spec "core::option::OptionTraitImpl<core::integer::u8>::expect" :=
+  fun _ a b ρ =>
+  ρ = a.map id fun _ => ((), [b])
+
+aegis_prove "core::option::OptionTraitImpl<core::integer::u8>::expect" :=
+  fun _ a b ρ => by
+  unfold «spec_core::option::OptionTraitImpl<core::integer::u8>::expect»
+  aesop
+
+aegis_spec "core::option::OptionTraitImpl<core::integer::u32>::expect" :=
+  fun _ a b ρ =>
+  ρ = a.map id fun _ => ((), [b])
+
+aegis_prove "core::option::OptionTraitImpl<core::integer::u32>::expect" :=
+  fun _ a b ρ => by
+  unfold «spec_core::option::OptionTraitImpl<core::integer::u32>::expect»
+  aesop
+
 aegis_spec "core::integer::u256_overflowing_add" :=
   fun _ _ (a b : UInt256) _ ρ =>
   ρ = (a + b, Bool.toSierraBool (U256_MOD ≤ a.val + b.val))
