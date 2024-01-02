@@ -58,7 +58,7 @@
   {"url": "git@github.com:lindy-labs/aegis.git",
    "type": "git",
    "subDir": null,
-   "rev": "90ce9d5944d6ed350e23e26bc0eb2ee55557cd82",
+   "rev": "d391197567914f4593b6c6e240da98751d236b9e",
    "name": "aegis",
    "manifestFile": "lake-manifest.json",
    "inputRev": "main",
