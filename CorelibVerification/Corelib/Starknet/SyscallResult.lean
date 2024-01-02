@@ -2,8 +2,6 @@ import CorelibVerification.Load
 
 namespace Sierra
 
-aegis_load_file "full.sierra"
-
 aegis_spec "core::starknet::SyscallResultTraitImpl<core::starknet::contract_address::ContractAddress>::unwrap_syscall" :=
   fun _ a ρ =>
   (∃ x, a = .inl x ∧ ρ = .inl x) ∨ a.isRight ∧ ρ.isRight
