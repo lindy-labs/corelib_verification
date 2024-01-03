@@ -746,3 +746,24 @@ aegis_prove "core::integer::U256Div::div" :=
       simp at h
     · simp at h'
   · right; aesop
+
+aegis_spec "core::integer::U128IntoU256::into" :=
+  fun _ a ρ =>
+  ρ = (a, 0)
+
+aegis_prove "core::integer::U128IntoU256::into" :=
+  fun _ a ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::integer::U256TryIntoU128::try_into" :=
+  fun _ (a : UInt256) ρ =>
+  (a.val < U128_MOD ∧ ρ = .inl a.1)
+  ∨ (U128_MOD ≤ a.val ∧ ρ = .inr ())
+
+aegis_prove "core::integer::U256TryIntoU128::try_into" :=
+  fun _ (a : UInt256) ρ => by
+  unfold «spec_core::integer::U256TryIntoU128::try_into»
+  rw [UInt256.val_lt_U128_MOD_iff, UInt256.U128_MOD_le_val_iff]
+  simp only [Bool.toSierraBool_decide_inl', Bool.toSierraBool_decide_inr']
+  aesop
