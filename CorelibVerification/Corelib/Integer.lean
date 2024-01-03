@@ -767,3 +767,32 @@ aegis_prove "core::integer::U256TryIntoU128::try_into" :=
   rw [UInt256.val_lt_U128_MOD_iff, UInt256.U128_MOD_le_val_iff]
   simp only [Bool.toSierraBool_decide_inl', Bool.toSierraBool_decide_inr']
   aesop
+
+aegis_spec "core::traits::PartialEqSnap<core::integer::u128, core::integer::U128PartialEq>::eq" :=
+  fun _ a b ρ =>
+  ρ = Bool.toSierraBool (a = b)
+
+aegis_prove "core::traits::PartialEqSnap<core::integer::u128, core::integer::U128PartialEq>::eq" :=
+  fun _ a b ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::integer::u256PartialEq::eq" :=
+  fun _ (a b : UInt256) ρ =>
+  ρ = Bool.toSierraBool (a = b)
+
+aegis_prove "core::integer::u256PartialEq::eq" :=
+  fun _ (a b : UInt256) ρ => by
+  unfold «spec_core::integer::u256PartialEq::eq»
+  rintro ⟨_,_,_,_,_,_,_,_,_,_,rfl,rfl,(h|h)⟩
+  · rcases h with ⟨h,rfl⟩
+    rw [Bool.toSierraBool_decide_inl'] at h ⊢
+    intro h'; injection h'; contradiction
+  · rcases h with ⟨h,h₁,h₂,rfl⟩
+    rw [Bool.toSierraBool_decide_inr'] at h; cases h
+    congr 2
+    cases h₁; cases h₂
+    apply propext
+    constructor
+    · rintro rfl; rfl
+    · rintro h; cases h; rfl
