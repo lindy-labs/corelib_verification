@@ -796,3 +796,12 @@ aegis_prove "core::integer::u256PartialEq::eq" :=
     constructor
     · rintro rfl; rfl
     · rintro h; cases h; rfl
+
+aegis_spec "core::traits::TIntoT<core::integer::u128>::into" :=
+  fun _ a ρ =>
+  ρ = a
+
+aegis_prove "core::traits::TIntoT<core::integer::u128>::into" :=
+  fun _ a ρ => by
+  rintro rfl
+  rfl
