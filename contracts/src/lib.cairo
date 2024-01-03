@@ -1,3 +1,5 @@
+use core::option::OptionTrait;
+use core::traits::TryInto;
 use debug::PrintTrait;
 use core::result::Result;
 use core::integer;
@@ -215,4 +217,14 @@ fn main(contract_address : ContractAddress,
     //core::starknet::contract_address::ContractAddressSerde::deserialize
     let mut span_felt252: Span<felt252> = ref_array_felt252.span();
     let x = ContractAddressSerde::deserialize(ref span_felt252);
+    //core::integer::U128IntoU256::into
+    let x: u256 = 0_u128.into();
+    //core::integer::U256TryIntoU128::try_into
+    let x: u128 = 0_u256.try_into().expect('foo');
+    //core::integer::u256PartialEq::eq
+    let x: bool = (0_u256 == 0_u256);
+    //core::traits::TIntoT<core::integer::u128>::into
+    let x: u128 = 0_u128.into();
+    //core::traits::PartialEqSnap<core::integer::u128, core::integer::U128PartialEq>::eq
+    let x: bool = (@0_u128 == @0_u128);
 }
