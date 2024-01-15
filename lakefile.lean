@@ -6,7 +6,7 @@ package «corelib_verification» {
 }
 
 require aegis from git
-  "git@github.com:lindy-labs/aegis.git" @ "main"
+  "https://github.com/lindy-labs/aegis.git" @ "main"
 
 @[default_target]
 lean_lib «CorelibVerification» {

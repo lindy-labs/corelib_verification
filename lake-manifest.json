@@ -55,7 +55,7 @@
    "inputRev": "42649c4da2724d1aa86b8dab06079db71daf1a84",
    "inherited": true,
    "configFile": "lakefile.lean"},
-  {"url": "git@github.com:lindy-labs/aegis.git",
+  {"url": "https://github.com/lindy-labs/aegis.git",
    "type": "git",
    "subDir": null,
    "rev": "69a5784e2150bae7b530e654d2f4b3707a940f3e",
