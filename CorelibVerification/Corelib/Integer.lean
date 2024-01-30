@@ -1020,3 +1020,57 @@ aegis_prove "core::traits::TIntoT<core::integer::u128>::into" :=
   fun _ a ρ => by
   rintro rfl
   rfl
+
+aegis_spec "core::integer::u8_as_non_zero" :=
+  fun _ a ρ =>
+  (a ≠ 0 ∧ ρ = .inl a) ∨ (a = 0 ∧ ρ.isRight)
+
+aegis_prove "core::integer::u8_as_non_zero" :=
+  fun _ a ρ => by
+  unfold «spec_core::integer::u8_as_non_zero»
+  aesop
+
+aegis_spec "core::integer::u16_as_non_zero" :=
+  fun _ a ρ =>
+  (a ≠ 0 ∧ ρ = .inl a) ∨ (a = 0 ∧ ρ.isRight)
+
+aegis_prove "core::integer::u16_as_non_zero" :=
+  fun _ a ρ => by
+  unfold «spec_core::integer::u16_as_non_zero»
+  aesop
+
+aegis_spec "core::integer::u32_as_non_zero" :=
+  fun _ a ρ =>
+  (a ≠ 0 ∧ ρ = .inl a) ∨ (a = 0 ∧ ρ.isRight)
+
+aegis_prove "core::integer::u32_as_non_zero" :=
+  fun _ a ρ => by
+  unfold «spec_core::integer::u32_as_non_zero»
+  aesop
+
+aegis_spec "core::integer::U8TryIntoNonZero::try_into" :=
+  fun _ a ρ =>
+  (a ≠ 0 ∧ ρ = .inl (.inl a)) ∨ (a = 0 ∧ ρ.isRight)
+
+aegis_prove "core::integer::U8TryIntoNonZero::try_into" :=
+  fun _ a ρ => by
+  unfold «spec_core::integer::U8TryIntoNonZero::try_into»
+  aesop
+
+aegis_spec "core::integer::U16TryIntoNonZero::try_into" :=
+  fun _ a ρ =>
+  (a ≠ 0 ∧ ρ = .inl (.inl a)) ∨ (a = 0 ∧ ρ.isRight)
+
+aegis_prove "core::integer::U16TryIntoNonZero::try_into" :=
+  fun _ a ρ => by
+  unfold «spec_core::integer::U16TryIntoNonZero::try_into»
+  aesop
+
+aegis_spec "core::integer::U32TryIntoNonZero::try_into" :=
+  fun _ a ρ =>
+  (a ≠ 0 ∧ ρ = .inl (.inl a)) ∨ (a = 0 ∧ ρ.isRight)
+
+aegis_prove "core::integer::U32TryIntoNonZero::try_into" :=
+  fun _ a ρ => by
+  unfold «spec_core::integer::U32TryIntoNonZero::try_into»
+  aesop

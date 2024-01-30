@@ -22,6 +22,16 @@ aegis_prove "core::starknet::SyscallResultTraitImpl<core::integer::u8>::unwrap_s
   · left; simp only [Sum.inl.injEq, and_self, exists_eq']
   · right; simp only [Sum.isRight_inr, and_self]
 
+aegis_spec "core::starknet::SyscallResultTraitImpl<core::integer::u16>::unwrap_syscall" :=
+  fun _ a ρ =>
+  (∃ x, a = .inl x ∧ ρ = .inl x) ∨ a.isRight ∧ ρ.isRight
+
+aegis_prove "core::starknet::SyscallResultTraitImpl<core::integer::u16>::unwrap_syscall" :=
+  fun _ a ρ => by
+  rintro ⟨_,_,(⟨rfl,rfl⟩|⟨rfl,rfl⟩)⟩
+  · left; simp only [Sum.inl.injEq, and_self, exists_eq']
+  · right; simp only [Sum.isRight_inr, and_self]
+
 aegis_spec "core::starknet::SyscallResultTraitImpl<core::integer::u128>::unwrap_syscall" :=
   fun _ a ρ =>
   (∃ x, a = .inl x ∧ ρ = .inl x) ∨ a.isRight ∧ ρ.isRight
