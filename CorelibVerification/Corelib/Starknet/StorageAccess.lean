@@ -29,6 +29,20 @@ aegis_prove "core::starknet::storage_access::StoreU8::read" :=
   sierra_simp'
   aesop
 
+aegis_spec "core::starknet::storage_access::StoreU16::read" :=
+  fun m _ _ sys _ b_add _ _ ρ_sys ρ =>
+  let r := (sys.contracts m.contractAddress).storage b_add.cast
+  ρ_sys = sys
+  ∧ (r.val < U16_MOD ∧ ρ = .inl (.inl r.cast)
+    ∨ U16_MOD ≤ r.val ∧ ρ.isRight
+    ∨ ∃ e, ρ = .inl (.inr e))
+
+aegis_prove "core::starknet::storage_access::StoreU16::read" :=
+  fun m _ _ sys _ b_add _ _ ρ_sys ρ => by
+  unfold «spec_core::starknet::storage_access::StoreU16::read»
+  sierra_simp'
+  aesop
+
 aegis_spec "core::starknet::storage_access::StoreU32::read" :=
   fun m _ _ sys _ b_add _ _ ρ_sys ρ =>
   let r := (sys.contracts m.contractAddress).storage b_add.cast

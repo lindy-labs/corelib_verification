@@ -176,3 +176,24 @@ theorem Nat.eq_zero_of_mul_lt_left {a b : ℕ} (h : b * a < a) : b = 0 := by
 
 theorem Nat.eq_zero_of_mul_lt_right {a b : ℕ} (h : a * b < a) : b = 0 := by
   rw [mul_comm] at h; apply Nat.eq_zero_of_mul_lt_left h
+
+theorem ZMod.cast_mul_of_val_lt [Ring R] [NeZero n] {a b : ZMod n} (h : a.val * b.val < n) :
+    (a : R) * (b : R) = ↑(a * b) := by
+  rcases n with (⟨⟩|⟨n⟩); · cases NeZero.ne 0 rfl
+  rcases a with ⟨a, ha⟩
+  rcases b with ⟨b, hb⟩
+  simp only [cast, val, Fin.val_mk] at *
+  rw [Fin.val_mk (n := n + 1) (by simp), Fin.mul_def]
+  simp [Nat.mod_eq_of_lt h]
+
+@[simp]
+theorem ZMod.cast_cast_of_lt {m n : ℕ} [NeZero m] (h : m < n) {a : ZMod m} :
+    ((a : ZMod n) : ZMod m) = a := by
+  rcases m with (⟨⟩|⟨m⟩); · cases NeZero.ne 0 rfl
+  rcases n with (⟨⟩|⟨n⟩); · simp at h
+  rcases a with ⟨a, ha⟩
+  simp only [cast, Nat.cast, NatCast.natCast, val, Nat.add_eq, Nat.add_zero, Fin.ofNat_eq_val,
+    Fin.coe_ofNat_eq_mod]
+  rw [Nat.mod_eq_of_lt (lt_trans ha h)]
+  apply Fin.ext
+  simp [ha]

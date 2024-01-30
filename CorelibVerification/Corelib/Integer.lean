@@ -4,6 +4,8 @@ import CorelibVerification.Aux.UInt256
 import CorelibVerification.Aux.Bool
 import Aegis.Tactic
 
+open Sierra
+
 syntax "sierra_simp'" : tactic
 macro_rules
 | `(tactic|sierra_simp') =>
@@ -49,7 +51,31 @@ aegis_prove "core::integer::U8Sub::sub" := fun _ _ a b _ ρ => by
 
 instance U128_MOD_lt_PRIME : Fact (U128_MOD < PRIME) := ⟨by norm_num [U128_MOD, PRIME]⟩
 
+instance : NeZero U8_MOD := ⟨by norm_num [U8_MOD]⟩
+
+instance : NeZero U16_MOD := ⟨by norm_num [U16_MOD]⟩
+
+instance : NeZero U32_MOD := ⟨by norm_num [U32_MOD]⟩
+
+instance : NeZero U64_MOD := ⟨by norm_num [U64_MOD]⟩
+
 instance : NeZero U128_MOD := ⟨by norm_num [U128_MOD]⟩
+
+theorem U8_MOD_lt_U16_MOD : U8_MOD < U16_MOD := by norm_num [U8_MOD, U16_MOD]
+
+theorem U16_MOD_lt_U32_MOD : U16_MOD < U32_MOD := by norm_num [U16_MOD, U32_MOD]
+
+theorem U32_MOD_lt_U64_MOD : U32_MOD < U64_MOD := by norm_num [U32_MOD, U64_MOD]
+
+theorem U64_MOD_lt_U128_MOD : U64_MOD < U128_MOD := by norm_num [U64_MOD, U128_MOD]
+
+theorem U8_MOD_pos : 0 < U8_MOD := by norm_num [U8_MOD]
+
+theorem U16_MOD_pos : 0 < U16_MOD := by norm_num [U16_MOD]
+
+theorem U32_MOD_pos : 0 < U32_MOD := by norm_num [U32_MOD]
+
+theorem U64_MOD_pos : 0 < U64_MOD := by norm_num [U64_MOD]
 
 aegis_spec "core::integer::u128_wide_mul" :=
   fun _ _ a b _ ρ =>
@@ -77,6 +103,42 @@ aegis_prove "core::integer::u128_checked_mul" :=
       (ZMod.cast_injective_of_lt U128_MOD_lt_PRIME.out).ne_iff] at h
     simp_all [ZMod.hmul_eq_zero_iff]
 
+aegis_spec "core::option::OptionTraitImpl<core::integer::u8>::expect" :=
+  fun _ a err ρ =>
+  ρ = a.map id (fun _ => ((), [err]))
+
+aegis_prove "core::option::OptionTraitImpl<core::integer::u8>::expect" :=
+  fun _ a b ρ => by
+  unfold «spec_core::option::OptionTraitImpl<core::integer::u8>::expect»
+  aesop
+
+aegis_spec "core::option::OptionTraitImpl<core::integer::u16>::expect" :=
+  fun _ a err ρ =>
+  ρ = a.map id (fun _ => ((), [err]))
+
+aegis_prove "core::option::OptionTraitImpl<core::integer::u16>::expect" :=
+  fun _ a b ρ => by
+  unfold «spec_core::option::OptionTraitImpl<core::integer::u16>::expect»
+  aesop
+
+aegis_spec "core::option::OptionTraitImpl<core::integer::u32>::expect" :=
+  fun _ a err ρ =>
+  ρ = a.map id (fun _ => ((), [err]))
+
+aegis_prove "core::option::OptionTraitImpl<core::integer::u32>::expect" :=
+  fun _ a b ρ => by
+  unfold «spec_core::option::OptionTraitImpl<core::integer::u32>::expect»
+  aesop
+
+aegis_spec "core::option::OptionTraitImpl<core::integer::u64>::expect" :=
+  fun _ a err ρ =>
+  ρ = a.map id (fun _ => ((), [err]))
+
+aegis_prove "core::option::OptionTraitImpl<core::integer::u64>::expect" :=
+  fun _ a b ρ => by
+  unfold «spec_core::option::OptionTraitImpl<core::integer::u64>::expect»
+  aesop
+
 aegis_spec "core::option::OptionTraitImpl<core::integer::u128>::expect" :=
   fun _ a err ρ =>
   ρ = a.map id (fun _ => ((), [err]))
@@ -85,6 +147,33 @@ aegis_prove "core::option::OptionTraitImpl<core::integer::u128>::expect" :=
   fun _ a b ρ => by
   unfold «spec_core::option::OptionTraitImpl<core::integer::u128>::expect»
   aesop
+
+aegis_spec "core::integer::DowncastableTryInto<core::integer::u128, core::integer::u64, core::integer::DowncastableU128U64>::try_into" :=
+ fun _ _ a _ ρ =>
+ if a.val < U64_MOD then ρ = .inl a.cast else ρ = .inr ()
+
+aegis_prove "core::integer::DowncastableTryInto<core::integer::u128, core::integer::u64, core::integer::DowncastableU128U64>::try_into" :=
+ fun _ _ a _ ρ => by
+ unfold «spec_core::integer::DowncastableTryInto<core::integer::u128, core::integer::u64, core::integer::DowncastableU128U64>::try_into»
+ aesop (add safe forward Nat.lt_le_asymm)
+
+aegis_spec "core::integer::U64Mul::mul" :=
+  fun _ _ a b _ ρ =>
+  (a.val * b.val < U64_MOD ∧ ρ = .inl (a * b)) ∨ (U64_MOD ≤ a.val * b.val ∧ ρ.isRight)
+
+aegis_prove "core::integer::U64Mul::mul" := fun _ _ a b _ ρ => by
+  unfold «spec_core::integer::U64Mul::mul»
+  have ha : (a : UInt128).val = a.val :=
+    ZMod.val_cast_of_lt (lt_trans (ZMod.val_lt a) U64_MOD_lt_U128_MOD)
+  have hb : (b : UInt128).val = b.val :=
+    ZMod.val_cast_of_lt (lt_trans (ZMod.val_lt b) U64_MOD_lt_U128_MOD)
+  have : (a : UInt128).val * (b : UInt128).val < U128_MOD
+  · rw [ha, hb]
+    apply lt_of_le_of_lt (Nat.mul_le_mul_right _ (le_of_lt (ZMod.val_lt _)))
+    apply Nat.mul_lt_mul_of_pos_left (ZMod.val_lt _) U64_MOD_pos
+  have := ZMod.val_mul_of_lt this
+  aesop (add simp [ZMod.cast_mul_of_val_lt, U64_MOD_lt_U128_MOD],
+    apply safe [ZMod.cast_cast_of_lt])
 
 aegis_spec "core::integer::U128Mul::mul" :=
   fun _ _ a b _ ρ =>
@@ -240,6 +329,15 @@ aegis_prove "core::integer::Felt252TryIntoU8::try_into" :=
   unfold «spec_core::integer::Felt252TryIntoU8::try_into»
   aesop
 
+aegis_spec "core::integer::Felt252TryIntoU16::try_into" :=
+  fun _ _ a _ ρ =>
+  (a.val < U16_MOD ∧ ρ = .inl a.cast) ∨ (U16_MOD ≤ a.val ∧ ρ.isRight)
+
+aegis_prove "core::integer::Felt252TryIntoU16::try_into" :=
+  fun _ _ a _ ρ => by
+  unfold «spec_core::integer::Felt252TryIntoU16::try_into»
+  aesop
+
 aegis_spec "core::integer::Felt252TryIntoU32::try_into" :=
   fun _ _ a _ ρ =>
   (a.val < U32_MOD ∧ ρ = .inl a.cast) ∨ (U32_MOD ≤ a.val ∧ ρ.isRight)
@@ -294,15 +392,6 @@ aegis_prove "core::integer::U64Sub::sub" :=
    unfold «spec_core::integer::U64Sub::sub»
    aesop
 
-aegis_spec "core::option::OptionTraitImpl<core::integer::u64>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::integer::u64>::expect" :=
-  fun _ a b ρ => by
-  unfold «spec_core::option::OptionTraitImpl<core::integer::u64>::expect»
-  aesop
-
 aegis_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u64>>::expect" :=
   fun _ a err ρ =>
   ρ = a.map id (fun _ => ((), [err]))
@@ -346,24 +435,6 @@ aegis_spec "core::integer::U128Add::add" :=
 aegis_prove "core::integer::U128Add::add" :=
   fun _ _ a b _ ρ => by
   unfold «spec_core::integer::U128Add::add»
-  aesop
-
-aegis_spec "core::option::OptionTraitImpl<core::integer::u8>::expect" :=
-  fun _ a b ρ =>
-  ρ = a.map id fun _ => ((), [b])
-
-aegis_prove "core::option::OptionTraitImpl<core::integer::u8>::expect" :=
-  fun _ a b ρ => by
-  unfold «spec_core::option::OptionTraitImpl<core::integer::u8>::expect»
-  aesop
-
-aegis_spec "core::option::OptionTraitImpl<core::integer::u32>::expect" :=
-  fun _ a b ρ =>
-  ρ = a.map id fun _ => ((), [b])
-
-aegis_prove "core::option::OptionTraitImpl<core::integer::u32>::expect" :=
-  fun _ a b ρ => by
-  unfold «spec_core::option::OptionTraitImpl<core::integer::u32>::expect»
   aesop
 
 aegis_spec "core::integer::u256_overflowing_add" :=

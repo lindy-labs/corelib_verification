@@ -34,6 +34,14 @@ fn main(contract_address : ContractAddress,
     let x = 42_u8 - 23_u8;
     //core::integer::u128_checked_mul
     let x = core::integer::u128_checked_mul(0_u128, 0_u128);
+    //core::integer::U8Mul::mul
+    let x = core::integer::U8Mul::mul(0_u8, 0_u8);
+    //core::integer::U16Mul::mul
+    let x = core::integer::U16Mul::mul(0_u16, 0_u16);
+    //core::integer::U32Mul::mul
+    let x = core::integer::U32Mul::mul(0_u32, 0_u32);
+    //core::integer::U64Mul::mul
+    let x = core::integer::U64Mul::mul(0_u64, 0_u64);
     //core::integer::U128Mul::mul
     let x = core::integer::U128Mul::mul(0_u128, 0_u128);
     //core::result::ResultTraitImpl<core::integer::u128, core::integer::u128>::expect<core::integer::u128Drop>
@@ -45,12 +53,24 @@ fn main(contract_address : ContractAddress,
     let x = core::integer::u128_try_from_felt252(0);
     //core::integer::U128BitNot::bitnot
     let x = core::integer::U128BitNot::bitnot(0);
+    //core::integer::u8_try_as_non_zero
+    let x = core::integer::u8_try_as_non_zero(0);
+    //core::integer::u16_try_as_non_zero
+    let x = core::integer::u16_try_as_non_zero(0);
+    //core::integer::u32_try_as_non_zero
+    let x = core::integer::u32_try_as_non_zero(0);
     //core::integer::u64_try_as_non_zero
     let x = core::integer::u64_try_as_non_zero(0);
     //core::integer::u128_try_as_non_zero
     let x = core::integer::u128_try_as_non_zero(0);
     //core::integer::u256_try_as_non_zero
     let x = core::integer::u256_try_as_non_zero(0);
+    //core::integer::u8_as_non_zero
+    let x = core::integer::u8_as_non_zero(0);
+    //core::integer::u16_as_non_zero
+    let x = core::integer::u16_as_non_zero(0);
+    //core::integer::u32_as_non_zero
+    let x = core::integer::u32_as_non_zero(0);
     //core::integer::u64_as_non_zero
     let x = core::integer::u64_as_non_zero(0);
     //core::integer::u128_as_non_zero
@@ -59,6 +79,12 @@ fn main(contract_address : ContractAddress,
     let x = core::integer::u256_as_non_zero(0);
     //core::integer::u256_from_felt252
     let x = core::integer::u256_from_felt252(0);
+    //core::integer::U8TryIntoNonZero::try_into
+    let x = core::integer::U8TryIntoNonZero::try_into(0);
+    //core::integer::U16TryIntoNonZero::try_into
+    let x = core::integer::U16TryIntoNonZero::try_into(0);
+    //core::integer::U32TryIntoNonZero::try_into
+    let x = core::integer::U32TryIntoNonZero::try_into(0);
     //core::integer::U64TryIntoNonZero::try_into
     let x = core::integer::U64TryIntoNonZero::try_into(0);
     //core::integer::U128TryIntoNonZero::try_into
@@ -71,14 +97,38 @@ fn main(contract_address : ContractAddress,
     let x = core::integer::Felt252TryIntoU32::try_into(0);
     //core::integer::Felt252TryIntoU64::try_into
     let x = core::integer::Felt252TryIntoU64::try_into(0);
+    //core::integer::Felt252TryIntoU128::try_into
+    let x = core::integer::Felt252TryIntoU128::try_into(0);
+    //core::integer::U8Add::add
+    let x = core::integer::U8Add::add(0, 0);
+    //core::integer::U16Add::add
+    let x = core::integer::U16Add::add(0, 0);
     //core::integer::U32Add::add
     let x = core::integer::U32Add::add(0, 0);
+    //core::integer::U16Sub::sub
+    let x = core::integer::U16Sub::sub(0, 0);
     //core::integer::U32Sub::sub
     let x = core::integer::U32Sub::sub(0, 0);
     //core::integer::U64Add::add
     let x = core::integer::U64Add::add(0, 0);
     //core::integer::U64Sub::sub
     let x = core::integer::U64Sub::sub(0, 0);
+    //core::integer::U8Rem::rem
+    let x = core::integer::U8Rem::rem(0, 0);
+    //core::integer::U16Rem::rem
+    let x = core::integer::U16Rem::rem(0, 0);
+    //core::integer::U32Rem::rem
+    let x = core::integer::U32Rem::rem(0, 0);
+    //core::integer::U64Rem::rem
+    let x = core::integer::U64Rem::rem(0, 0);
+    //core::integer::U128Rem::rem
+    let x = core::integer::U128Rem::rem(0, 0);
+    //core::integer::U8Div::div
+    let x = core::integer::U8Div::div(0, 0);
+    //core::integer::U16Div::div
+    let x = core::integer::U16Div::div(0, 0);
+    //core::integer::U32Div::div
+    let x = core::integer::U32Div::div(0, 0);
     //core::integer::U64Div::div
     let x = core::integer::U64Div::div(0, 0);
     //core::integer::U128Div::div
@@ -142,6 +192,8 @@ fn main(contract_address : ContractAddress,
     let x = syscall_result_bool.unwrap_syscall();
     //core::starknet::storage_access::StorageAccessU8::read
     let x = Store::<u8>::read(0, storage_base_address).unwrap_syscall();
+    //core::starknet::storage_access::StorageAccessU16::read
+    let x = Store::<u16>::read(0, storage_base_address).unwrap_syscall();
     //core::starknet::storage_access::StorageAccessU32::read
     let x = Store::<u32>::read(0, storage_base_address).unwrap_syscall();
     //core::starknet::storage_access::StorageAccessU64::read
