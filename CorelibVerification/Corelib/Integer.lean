@@ -1128,3 +1128,48 @@ aegis_prove "core::traits::TIntoT<core::integer::u128>::into" :=
   fun _ a ρ => by
   rintro rfl
   rfl
+
+aegis_spec "core::integer::U8Rem::rem" :=
+  fun _ _ a b _ ρ =>
+  (b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)) ∨ (b = 0 ∧ ρ.isRight)
+
+aegis_prove "core::integer::U8Rem::rem" :=
+  fun _ _ a b _ ρ => by
+  unfold «spec_core::integer::U8Rem::rem»
+  aesop
+
+aegis_spec "core::integer::U16Rem::rem" :=
+  fun _ _ a b _ ρ =>
+  (b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)) ∨ (b = 0 ∧ ρ.isRight)
+
+aegis_prove "core::integer::U16Rem::rem" :=
+  fun _ _ a b _ ρ => by
+  unfold «spec_core::integer::U16Rem::rem»
+  aesop
+
+aegis_spec "core::integer::U32Rem::rem" :=
+  fun _ _ a b _ ρ =>
+  (b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)) ∨ (b = 0 ∧ ρ.isRight)
+
+aegis_prove "core::integer::U32Rem::rem" :=
+  fun _ _ a b _ ρ => by
+  unfold «spec_core::integer::U32Rem::rem»
+  aesop
+
+aegis_spec "core::integer::U64Rem::rem" :=
+  fun _ _ a b _ ρ =>
+  (b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)) ∨ (b = 0 ∧ ρ.isRight)
+
+aegis_prove "core::integer::U64Rem::rem" :=
+  fun _ _ a b _ ρ => by
+  unfold «spec_core::integer::U64Rem::rem»
+  aesop
+
+aegis_spec "core::integer::U128Rem::rem" :=
+  fun _ _ a b _ ρ =>
+  (b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)) ∨ (b = 0 ∧ ρ.isRight)
+
+aegis_prove "core::integer::U128Rem::rem" :=
+  fun _ _ a b _ ρ => by
+  unfold «spec_core::integer::U128Rem::rem»
+  aesop
