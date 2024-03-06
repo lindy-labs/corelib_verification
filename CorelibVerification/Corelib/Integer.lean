@@ -97,10 +97,10 @@ aegis_prove "core::integer::u128_checked_mul" :=
     forall_eq_apply_imp_iff', forall_eq]
   rintro _ _ rfl rfl (⟨h,rfl⟩|⟨h,rfl⟩)
   · rw [← ZMod.cast_zero (n := U128_MOD),
-      (ZMod.cast_injective_of_lt U128_MOD_lt_PRIME.out).eq_iff, ZMod.hmul_eq_zero_iff] at h
+      (ZMod.cast_injective_of_le (le_of_lt U128_MOD_lt_PRIME.out)).eq_iff, ZMod.hmul_eq_zero_iff] at h
     simp_all only [and_self, and_false, or_false]
   · rw [← @ne_eq, ← ZMod.cast_zero (n := U128_MOD),
-      (ZMod.cast_injective_of_lt U128_MOD_lt_PRIME.out).ne_iff] at h
+      (ZMod.cast_injective_of_le (le_of_lt U128_MOD_lt_PRIME.out)).ne_iff] at h
     simp_all [ZMod.hmul_eq_zero_iff]
 
 aegis_spec "core::option::OptionTraitImpl<core::integer::u8>::expect" :=
@@ -190,12 +190,12 @@ aegis_spec "core::integer::U8Mul::mul" :=
 
 aegis_prove "core::integer::U8Mul::mul" := fun _ _ a b _ ρ => by
   unfold «spec_core::integer::U8Mul::mul»
-  have ha : (a : Sierra.UInt16).val = a.val :=
+  have ha : (a.cast : Sierra.UInt16).val = a.val :=
     ZMod.val_cast_of_lt (lt_trans (ZMod.val_lt a) U8_MOD_lt_U16_MOD)
-  have hb : (b : Sierra.UInt16).val = b.val :=
+  have hb : (b.cast : Sierra.UInt16).val = b.val :=
     ZMod.val_cast_of_lt (lt_trans (ZMod.val_lt b) U8_MOD_lt_U16_MOD)
-  have : (a : Sierra.UInt16).val * (b : Sierra.UInt16).val < U16_MOD
-  · rw [ha, hb]
+  have : (a.cast : Sierra.UInt16).val * (b.cast : Sierra.UInt16).val < U16_MOD := by
+    rw [ha, hb]
     apply lt_of_le_of_lt (Nat.mul_le_mul_right _ (le_of_lt (ZMod.val_lt _)))
     apply Nat.mul_lt_mul_of_pos_left (ZMod.val_lt _) U8_MOD_pos
   have := ZMod.val_mul_of_lt this
@@ -208,12 +208,12 @@ aegis_spec "core::integer::U16Mul::mul" :=
 
 aegis_prove "core::integer::U16Mul::mul" := fun _ _ a b _ ρ => by
   unfold «spec_core::integer::U16Mul::mul»
-  have ha : (a : Sierra.UInt32).val = a.val :=
+  have ha : (a.cast : Sierra.UInt32).val = a.val :=
     ZMod.val_cast_of_lt (lt_trans (ZMod.val_lt a) U16_MOD_lt_U32_MOD)
-  have hb : (b : Sierra.UInt32).val = b.val :=
+  have hb : (b.cast : Sierra.UInt32).val = b.val :=
     ZMod.val_cast_of_lt (lt_trans (ZMod.val_lt b) U16_MOD_lt_U32_MOD)
-  have : (a : Sierra.UInt32).val * (b : Sierra.UInt32).val < U32_MOD
-  · rw [ha, hb]
+  have : (a.cast : Sierra.UInt32).val * (b.cast : Sierra.UInt32).val < U32_MOD := by
+    rw [ha, hb]
     apply lt_of_le_of_lt (Nat.mul_le_mul_right _ (le_of_lt (ZMod.val_lt _)))
     apply Nat.mul_lt_mul_of_pos_left (ZMod.val_lt _) U16_MOD_pos
   have := ZMod.val_mul_of_lt this
@@ -226,12 +226,12 @@ aegis_spec "core::integer::U32Mul::mul" :=
 
 aegis_prove "core::integer::U32Mul::mul" := fun _ _ a b _ ρ => by
   unfold «spec_core::integer::U32Mul::mul»
-  have ha : (a : Sierra.UInt64).val = a.val :=
+  have ha : (a.cast : Sierra.UInt64).val = a.val :=
     ZMod.val_cast_of_lt (lt_trans (ZMod.val_lt a) U32_MOD_lt_U64_MOD)
-  have hb : (b : Sierra.UInt64).val = b.val :=
+  have hb : (b.cast : Sierra.UInt64).val = b.val :=
     ZMod.val_cast_of_lt (lt_trans (ZMod.val_lt b) U32_MOD_lt_U64_MOD)
-  have : (a : Sierra.UInt64).val * (b : Sierra.UInt64).val < U64_MOD
-  · rw [ha, hb]
+  have : (a.cast : Sierra.UInt64).val * (b.cast : Sierra.UInt64).val < U64_MOD := by
+    rw [ha, hb]
     apply lt_of_le_of_lt (Nat.mul_le_mul_right _ (le_of_lt (ZMod.val_lt _)))
     apply Nat.mul_lt_mul_of_pos_left (ZMod.val_lt _) U32_MOD_pos
   have := ZMod.val_mul_of_lt this
@@ -244,12 +244,12 @@ aegis_spec "core::integer::U64Mul::mul" :=
 
 aegis_prove "core::integer::U64Mul::mul" := fun _ _ a b _ ρ => by
   unfold «spec_core::integer::U64Mul::mul»
-  have ha : (a : UInt128).val = a.val :=
+  have ha : (a.cast : UInt128).val = a.val :=
     ZMod.val_cast_of_lt (lt_trans (ZMod.val_lt a) U64_MOD_lt_U128_MOD)
-  have hb : (b : UInt128).val = b.val :=
+  have hb : (b.cast : UInt128).val = b.val :=
     ZMod.val_cast_of_lt (lt_trans (ZMod.val_lt b) U64_MOD_lt_U128_MOD)
-  have : (a : UInt128).val * (b : UInt128).val < U128_MOD
-  · rw [ha, hb]
+  have : (a.cast : UInt128).val * (b.cast : UInt128).val < U128_MOD := by
+    rw [ha, hb]
     apply lt_of_le_of_lt (Nat.mul_le_mul_right _ (le_of_lt (ZMod.val_lt _)))
     apply Nat.mul_lt_mul_of_pos_left (ZMod.val_lt _) U64_MOD_pos
   have := ZMod.val_mul_of_lt this
@@ -299,7 +299,7 @@ aegis_prove "core::integer::u128_try_from_felt252" := fun _ _ a _ ρ => by
   · have : 2 ^ 128 ≤ a.val := by
       rw [← ZMod.val_ne_zero, ← pos_iff_ne_zero] at hne
       rw [← h]
-      exact le_trans (Nat.le_mul_of_pos_right hne) (Nat.le_add_right _ c.val)
+      exact le_trans (Nat.le_mul_of_pos_right _ hne) (Nat.le_add_right _ c.val)
     right; exact ⟨this, rfl⟩
 
 aegis_spec "core::integer::U128BitNot::bitnot" := fun _ _ a _ ρ =>
@@ -909,7 +909,7 @@ aegis_prove "core::integer::u256_overflow_mul" :=
             simp at h₄ ⊢
             rw [ZMod.hmul_eq_zero_iff] at h₁
             rw [ZMod.val_mul_of_lt h₁] at h
-            apply Nat.lt_of_div_lt_div (k := U128_MOD)
+            apply Nat.lt_of_div_lt_div
             rw [mul_add, Nat.add_div U128_MOD_pos]
             have : ¬ U128_MOD ≤ ZMod.val aₗ * (U128_MOD * ZMod.val bₕ) % U128_MOD
                 + ZMod.val aₗ * ZMod.val bₗ % U128_MOD := by
@@ -942,11 +942,11 @@ aegis_prove "core::integer::u256_overflow_mul" :=
               apply Nat.le_add_of_le_left; apply Nat.le_add_of_le_left
               ring_nf
               rw [pow_two, U128_MOD_mul_U128_MOD]
-              apply le_trans (Nat.le_mul_of_pos_right h₃) (Nat.le_mul_of_pos_right hbₕ)
+              apply le_trans (Nat.le_mul_of_pos_right _ h₃) (Nat.le_mul_of_pos_right _ hbₕ)
             · simp only [not_lt, nonpos_iff_eq_zero, ZMod.val_eq_zero] at hbₕ; subst hbₕ
               simp only [ZMod.val_zero, lt_self_iff_false, mul_zero, zero_add, false_iff, not_le]
               simp only [ZMod.val_zero, mul_zero, add_zero] at h₄
-              apply Nat.lt_of_div_lt_div (k := U128_MOD)
+              apply Nat.lt_of_div_lt_div
               rwa [add_mul, U256_MOD_div_U128_MOD, mul_assoc,
                 Nat.add_div_of_dvd_right (by norm_num), Nat.mul_div_cancel_left _ U128_MOD_pos,
                 add_comm]

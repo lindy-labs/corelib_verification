@@ -175,8 +175,8 @@ aegis_prove "core::array::serialize_array_helper<core::integer::u64, core::serde
       · cases h₁
         split_ifs at h₂ with hle'
         · rcases h₂ with ⟨rfl,rfl⟩
-          have : (data.length + 1) * c ≤ gas
-          · have := Nat.add_le_add_right hle' c
+          have : (data.length + 1) * c ≤ gas := by
+            have := Nat.add_le_add_right hle' c
             simp only [Nat.sub_add_cancel hle, List.length_tail, ge_iff_le, Nat.sub_add_cancel h] at this
             linarith
           simp only [List.map_tail, List.append_assoc, List.singleton_append, Sum.inl.injEq,
@@ -190,8 +190,8 @@ aegis_prove "core::array::serialize_array_helper<core::integer::u64, core::serde
           · cases data
             · simp at h
             · simp
-        · have : ¬ (data.length + 1) * c ≤ gas
-          · rw [not_le] at hle' ⊢
+        · have : ¬ (data.length + 1) * c ≤ gas := by
+            rw [not_le] at hle' ⊢
             have := Nat.add_lt_add_right hle' c
             simp only [Nat.sub_add_cancel hle, List.length_tail, ge_iff_le, Nat.sub_add_cancel h] at this
             linarith
@@ -199,8 +199,8 @@ aegis_prove "core::array::serialize_array_helper<core::integer::u64, core::serde
           aesop
       · aesop
     · aesop
-  · have : ¬ (data.length + 1) * c ≤ gas
-    · rw [not_le, Nat.add_mul, one_mul]; apply Nat.lt_add_left h
+  · have : ¬ (data.length + 1) * c ≤ gas := by
+      rw [not_le, Nat.add_mul, one_mul]; apply Nat.lt_add_left _ h
     simp [this]
 
 aegis_spec "core::array::serialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>" :=
@@ -222,8 +222,8 @@ aegis_prove "core::array::serialize_array_helper::<core::felt252, core::Felt252S
       · cases h₁
         split_ifs at h₂ with hle'
         · rcases h₂ with ⟨rfl,rfl⟩
-          have : (data.length + 1) * c ≤ gas
-          · have := Nat.add_le_add_right hle' c
+          have : (data.length + 1) * c ≤ gas := by
+            have := Nat.add_le_add_right hle' c
             simp only [Nat.sub_add_cancel hle, List.length_tail, ge_iff_le, Nat.sub_add_cancel h] at this
             linarith
           simp only [List.map_tail, List.append_assoc, List.singleton_append, Sum.inl.injEq,
@@ -237,8 +237,8 @@ aegis_prove "core::array::serialize_array_helper::<core::felt252, core::Felt252S
           · cases data
             · simp at h
             · simp
-        · have : ¬ (data.length + 1) * c ≤ gas
-          · rw [not_le] at hle' ⊢
+        · have : ¬ (data.length + 1) * c ≤ gas := by
+            rw [not_le] at hle' ⊢
             have := Nat.add_lt_add_right hle' c
             simp only [Nat.sub_add_cancel hle, List.length_tail, ge_iff_le, Nat.sub_add_cancel h] at this
             linarith
@@ -246,8 +246,8 @@ aegis_prove "core::array::serialize_array_helper::<core::felt252, core::Felt252S
           aesop
       · aesop
     · aesop
-  · have : ¬ (data.length + 1) * c ≤ gas
-    · rw [not_le, Nat.add_mul, one_mul]; apply Nat.lt_add_left h
+  · have : ¬ (data.length + 1) * c ≤ gas := by
+      rw [not_le, Nat.add_mul, one_mul]; apply Nat.lt_add_left _ h
     simp [this]
 
 attribute [aesop safe forward] Nat.lt_le_asymm
@@ -374,7 +374,10 @@ aegis_prove "core::array::deserialize_array_helper::<core::integer::u128, core::
             · simp only [decide_eq_true_eq] at h'
               simp [h', hle]
   -- Case: Not enough gas for one run
-  · aesop
+  · simp only [List.length_takeWhileN, add_mul, one_mul, List.all_eq_true, decide_eq_true_eq,
+      Int.ofNat_eq_coe, Nat.cast_ofNat, Int.int_cast_ofNat, List.nil_append, and_false, ite_self,
+      Sum.isRight_inr, if_true_right, not_le, or_false]
+    apply Nat.lt_add_left _ h
 
 aegis_spec "core::array::deserialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>" :=
   fun m _ gas s curr r _ gas' ρ =>
@@ -424,8 +427,8 @@ aegis_prove "core::array::deserialize_array_helper::<core::felt252, core::Felt25
         -- Case: recursive call panics
         · simp only [ge_iff_le, List.length_tail, tsub_le_iff_right, List.append_assoc,
             List.singleton_append, and_false, ite_self, Sum.isRight_inr] at hrec
-          have h₁ : ¬ ((r.val + 1) * c ≤ gas ∨ (s.length + 1) * c ≤ gas)
-          · split_ifs at hrec with h
+          have h₁ : ¬ ((r.val + 1) * c ≤ gas ∨ (s.length + 1) * c ≤ gas) := by
+            split_ifs at hrec with h
             simp only [ge_iff_le, Nat.sub_add_cancel hr', Nat.sub_add_cancel hs'] at h
             simpa only [add_mul, one_mul, ← Nat.le_sub_iff_add_le hle]
           simp only [h₁, ge_iff_le, and_false, ite_self, Sum.isRight_inr, ite_false]
@@ -460,7 +463,7 @@ aegis_spec "core::array::ArraySerde<core::integer::u64, core::serde::into_felt25
   fun m _ gas data str _ gas' ρ =>
   let c := m.costs id!"core::array::serialize_array_helper<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>"
   if (data.length + 1) * c ≤ gas then
-    gas' = gas - (data.length + 1) * c ∧ ρ = .inl (str ++ [((data.length : Sierra.UInt32) : F)] ++ data.map ZMod.cast, ())
+    gas' = gas - (data.length + 1) * c ∧ ρ = .inl (str ++ [((data.length : Sierra.UInt32).cast : F)] ++ data.map ZMod.cast, ())
   else ρ.isRight
 
 aegis_prove "core::array::ArraySerde<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>::serialize" :=
@@ -574,7 +577,10 @@ aegis_prove "core::array::deserialize_array_helper<core::integer::u64, core::ser
             · simp only [decide_eq_true_eq] at h'
               simp [h', hle]
   -- Case: Not enough gas for one run
-  · aesop
+  · simp only [List.length_takeWhileN, add_mul, one_mul, List.all_eq_true, decide_eq_true_eq,
+      Int.ofNat_eq_coe, Nat.cast_ofNat, Int.int_cast_ofNat, List.nil_append, and_false, ite_self,
+      Sum.isRight_inr, if_true_right, not_le, or_false]
+    apply Nat.lt_add_left _ h
 
 aegis_spec "core::array::ArraySerde<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>::deserialize" :=
   fun m _ gas a _ gas' ρ =>
@@ -630,8 +636,8 @@ aegis_prove "core::array::serialize_array_helper<core::integer::u128, core::serd
       · cases h₁
         split_ifs at h₂ with hle'
         · rcases h₂ with ⟨rfl,rfl⟩
-          have : (data.length + 1) * c ≤ gas
-          · have := Nat.add_le_add_right hle' c
+          have : (data.length + 1) * c ≤ gas := by
+            have := Nat.add_le_add_right hle' c
             simp only [Nat.sub_add_cancel hle, List.length_tail, ge_iff_le, Nat.sub_add_cancel h] at this
             linarith
           simp only [List.map_tail, List.append_assoc, List.singleton_append, Sum.inl.injEq,
@@ -645,8 +651,8 @@ aegis_prove "core::array::serialize_array_helper<core::integer::u128, core::serd
           · cases data
             · simp at h
             · simp
-        · have : ¬ (data.length + 1) * c ≤ gas
-          · rw [not_le] at hle' ⊢
+        · have : ¬ (data.length + 1) * c ≤ gas := by
+            rw [not_le] at hle' ⊢
             have := Nat.add_lt_add_right hle' c
             simp only [Nat.sub_add_cancel hle, List.length_tail, ge_iff_le, Nat.sub_add_cancel h] at this
             linarith
@@ -654,13 +660,13 @@ aegis_prove "core::array::serialize_array_helper<core::integer::u128, core::serd
           aesop
       · aesop
     · aesop
-  · aesop
+  · aesop (add safe apply [Nat.lt_add_left])
 
 aegis_spec "core::array::ArraySerde<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>::serialize" :=
     fun m _ gas data str _ gas' ρ =>
   let c := m.costs id!"core::array::serialize_array_helper<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>"
   if (data.length + 1) * c ≤ gas then
-    gas' = gas - (data.length + 1) * c ∧ ρ = .inl (str ++ [((data.length : Sierra.UInt32) : F)] ++ data.map ZMod.cast, ())
+    gas' = gas - (data.length + 1) * c ∧ ρ = .inl (str ++ [((data.length : Sierra.UInt32).cast : F)] ++ data.map ZMod.cast, ())
   else ρ.isRight
 
 aegis_prove "core::array::ArraySerde<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>::serialize" :=

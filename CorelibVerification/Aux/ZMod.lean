@@ -22,7 +22,7 @@ theorem ZMod.val_pow {m n : ℕ} {a : ZMod n} [ilt : Fact (1 < n)] (h : a.val ^ 
       · cases ha
         by_cases hm : m = 0
         · cases hm; simp [ilt.out]
-        · simp only [val_zero, ne_eq, hm, not_false_eq_true, zero_pow', Nat.zero_lt_of_lt h]
+        · simp only [val_zero, ne_eq, hm, not_false_eq_true, zero_pow, Nat.zero_lt_of_lt h]
       · exact lt_of_le_of_lt
          (Nat.pow_le_pow_of_le_right (ZMod.val_pos_of_ne_zero ha) (Nat.le_succ m)) h
     rw [pow_succ, ZMod.val_mul, ih this, ← pow_succ, Nat.mod_eq_of_lt h]
@@ -70,7 +70,7 @@ theorem ZMod.val_neg {n : ℕ} [nz : NeZero n] (a : ZMod n) [na : NeZero a] :
     exact absurd this na.out
 
 theorem ZMod.cast_rat_eq_zero_iff {m : ℕ} [NeZero m] (a : ZMod m) :
-    (a : ℚ) = 0 ↔ a = 0 := by
+    (a.cast : ℚ) = 0 ↔ a = 0 := by
   cases m; cases NeZero.ne 0 rfl
   rcases a with ⟨a, ha⟩
   simp only [ZMod.cast, ZMod.val, Nat.cast_eq_zero]
@@ -79,7 +79,7 @@ theorem ZMod.cast_rat_eq_zero_iff {m : ℕ} [NeZero m] (a : ZMod m) :
   · intro h; injection h
 
 theorem ZMod.cast_ZMod_eq_zero_iff_of_lt {m n : ℕ} [NeZero m] (h : m < n) (a : ZMod m) :
-    (a : ZMod n) = 0 ↔ a = 0 := by
+    (a.cast : ZMod n) = 0 ↔ a = 0 := by
   constructor
   · intro e
     rw [ZMod.cast_eq_val, ZMod.nat_cast_zmod_eq_zero_iff_dvd] at e
@@ -91,7 +91,7 @@ theorem ZMod.cast_ZMod_eq_zero_iff_of_lt {m n : ℕ} [NeZero m] (h : m < n) (a :
   · intro h; cases h; simp
 
 theorem ZMod.cast_ZMod_ne_zero_iff_of_lt {m n : ℕ} [NeZero m] (h : m < n) (a : ZMod m) :
-    (a : ZMod n) ≠ 0 ↔ a ≠ 0 := by
+    (a.cast : ZMod n) ≠ 0 ↔ a ≠ 0 := by
   rw [not_iff_not]
   apply ZMod.cast_ZMod_eq_zero_iff_of_lt h
 
@@ -110,11 +110,6 @@ theorem Nat.le_add_of_le_left {a b c : ℕ} (h : a ≤ b) : a ≤ b + c :=
 theorem Nat.le_add_of_le_right {a b c : ℕ} (h : a ≤ c) : a ≤ b + c := by
   rw [add_comm]
   apply Nat.le_add_of_le_left h
-
-theorem Nat.lt_add_left {a b c : ℕ} (h : a < c) : a < b + c := by
-  rw [add_comm]
-  apply Nat.lt_add_right
-  assumption
 
 theorem Nat.mul_add_div_eq_of_lt {a b c : ℕ} (h : c < b) : (b * a + c) / b = a := by
   rw [add_div (Nat.zero_lt_of_lt h)]
@@ -178,7 +173,7 @@ theorem Nat.eq_zero_of_mul_lt_right {a b : ℕ} (h : a * b < a) : b = 0 := by
   rw [mul_comm] at h; apply Nat.eq_zero_of_mul_lt_left h
 
 theorem ZMod.cast_mul_of_val_lt [Ring R] [NeZero n] {a b : ZMod n} (h : a.val * b.val < n) :
-    (a : R) * (b : R) = ↑(a * b) := by
+    (a.cast : R) * (b.cast : R) = (a * b).cast := by
   rcases n with (⟨⟩|⟨n⟩); · cases NeZero.ne 0 rfl
   rcases a with ⟨a, ha⟩
   rcases b with ⟨b, hb⟩
@@ -188,12 +183,11 @@ theorem ZMod.cast_mul_of_val_lt [Ring R] [NeZero n] {a b : ZMod n} (h : a.val * 
 
 @[simp]
 theorem ZMod.cast_cast_of_lt {m n : ℕ} [NeZero m] (h : m < n) {a : ZMod m} :
-    ((a : ZMod n) : ZMod m) = a := by
+    ((a.cast : ZMod n).cast : ZMod m) = a := by
   rcases m with (⟨⟩|⟨m⟩); · cases NeZero.ne 0 rfl
   rcases n with (⟨⟩|⟨n⟩); · simp at h
   rcases a with ⟨a, ha⟩
-  simp only [cast, Nat.cast, NatCast.natCast, val, Nat.add_eq, Nat.add_zero, Fin.ofNat_eq_val,
-    Fin.coe_ofNat_eq_mod]
-  rw [Nat.mod_eq_of_lt (lt_trans ha h)]
+  simp only [cast, Nat.cast, NatCast.natCast, Fin.ofNat'', val]
   apply Fin.ext
-  simp [ha]
+  dsimp only
+  rw [Nat.mod_eq_of_lt (lt_of_le_of_lt (Nat.mod_le _ _) ha), Nat.mod_eq_of_lt (lt_trans ha h)]

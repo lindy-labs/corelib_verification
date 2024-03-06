@@ -8,6 +8,7 @@ aegis_spec "core::array::ArrayImpl<core::felt252>::append" :=
 
 aegis_prove "core::array::ArrayImpl<core::felt252>::append" :=
   fun _ a b ρ _ => by
+  unfold «spec_core::array::ArrayImpl<core::felt252>::append»
   aesop
 
 aegis_spec "core::array::SpanImpl<core::felt252>::pop_front" :=
