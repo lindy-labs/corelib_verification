@@ -166,6 +166,11 @@ instance : Mul UInt256 := ⟨UInt256.mul⟩
 protected theorem mul_def : p * q = ⟨p.1 * q.1, ZMod.hmul p.1 q.1 + p.1 * q.2 + p.2 * q.1⟩ :=
   rfl
 
+@[simp]
+theorem val_mul_of_low (p q : UInt128) :
+  UInt256.val (HMul.hMul (α := UInt256) (β := UInt256) ⟨p, 0⟩ ⟨q, 0⟩) = p.val * q.val := by
+  simp [UInt256.mul_def, UInt256.val, ← ZMod.val_mul_val_eq_hmul]
+
 protected def zero : UInt256 where
   fst := 0
   snd := 0
