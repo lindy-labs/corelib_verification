@@ -4,7 +4,7 @@ import CorelibVerification.Corelib.Integer
 namespace Sierra
 
 aegis_spec "core::starknet::info::get_execution_info" :=
-  fun m _ s _ s' ρ =>
+  fun m _ s _ s' (ρ : PanicResult _) =>
   s = s' ∧
   ((∃ rei rbi rti, ρ = .inl rei ∧
       m.boxHeap .ExecutionInfo rei = .some ⟨rbi, rti,
@@ -12,29 +12,36 @@ aegis_spec "core::starknet::info::get_execution_info" :=
       ∧ m.boxHeap .BlockInfo rbi = .some ⟨m.blockNumber, m.blockTimestamp, m.sequencerAddress⟩
       ∧ m.boxHeap .TxInfo rti = .some ⟨m.txVersion, m.txContract, m.txMaxFee, m.txSignature,
         m.txHash, m.txChainIdentifier, m.txNonce⟩)
-    ∨ ρ.isRight)
+    ∨ ρ.fails)
 
 aegis_prove "core::starknet::info::get_execution_info" :=
-  fun m _ s _ s' ρ => by
+  fun m _ s _ s' (ρ : PanicResult _) => by
   unfold «spec_core::starknet::info::get_execution_info»
   rintro ⟨_,_,_,_,_,(⟨⟨_,_,_,_,_,h₁,h₃,h₄,rfl,rfl,rfl⟩,h₂,h₅⟩|⟨h₁,h₂⟩)⟩
-  · simp only [Sum.inl.injEq, exists_eq_left', Sum.isRight_inl, false_and, or_false] at h₂
-    subst h₂
-    simp only [Sum.inl.injEq, false_and, or_false] at h₅
-    rcases h₅ with ⟨rfl,rfl,rfl⟩
-    exact ⟨rfl, .inl ⟨_,_,_,rfl,h₁,h₃,h₄⟩⟩
-  · simp only [false_and, exists_const, Sum.isRight_inr, true_and, false_or] at h₁
+  · rcases h₅ with (⟨rfl,rfl,rfl⟩|⟨rfl,rfl,rfl⟩)
+    · simp only [sizeOf_nat, Nat.lt_eq, SierraType.Box.sizeOf_spec,
+        SierraType.ContractAddress.sizeOf_spec, Result.succeeds_inl, PanicResult.succeeds_inl,
+        Result.get!_inl, PanicResult.get!_inl, true_and, Result.fails_inl, PanicResult.fails_inl,
+        and_self, or_false, SierraType.U64.sizeOf_spec, SierraType.Felt252.sizeOf_spec,
+        SierraType.U128.sizeOf_spec] at h₁ h₂ h₃ h₄
+      subst h₂
+      exact ⟨rfl, .inl ⟨_, _, _, rfl, h₁, h₃, h₄⟩⟩
+    · exact ⟨rfl, .inr rfl⟩
+  · simp only [Result.succeeds_inr, Result.get!_inr, false_and, Result.fails_inr, true_and,
+      false_or] at h₁
     rcases h₂ with (⟨rfl,rfl,rfl⟩|⟨rfl,rfl,rfl⟩)
     · simp at h₁
     · exact ⟨rfl, .inr rfl⟩
 
-aegis_spec "core::starknet::info::get_caller_address" := fun m _ s _ s' ρ =>
-  s = s' ∧ (ρ = .inl m.callerAddress ∨ ρ.isRight)
+aegis_spec "core::starknet::info::get_caller_address" :=
+  fun m _ s _ s' (ρ : PanicResult _) =>
+  s = s' ∧ (ρ = .inl m.callerAddress ∨ ρ.fails)
 
-aegis_prove "core::starknet::info::get_caller_address" := fun m _ s _ s' ρ => by
+aegis_prove "core::starknet::info::get_caller_address" :=
+  fun m _ s _ s' (ρ : PanicResult _) => by
   unfold «spec_core::starknet::info::get_caller_address»
   rintro ⟨_,_,_,_,_,_,_,_,_,_,rfl,h,(⟨rfl,h',rfl,rfl,rfl⟩|⟨rfl,rfl,rfl⟩)⟩
-  · simp only [Sum.isRight_inl, or_false] at h
+  · simp only [PanicResult.fails_inl, or_false] at h
     rcases h with ⟨rei,_,_,h₁,h₂,-,-⟩
     cases h₁
     cases h'.trans h₂
@@ -42,12 +49,12 @@ aegis_prove "core::starknet::info::get_caller_address" := fun m _ s _ s' ρ => b
   · exact ⟨rfl, .inr rfl⟩
 
 aegis_spec "core::starknet::info::get_block_info" :=
-  fun m _ s _ s' ρ =>
+  fun m _ s _ s' (ρ : PanicResult _) =>
   s = s' ∧
   ((∃ rbi,
       m.boxHeap .BlockInfo rbi = .some ⟨m.blockNumber, m.blockTimestamp, m.sequencerAddress⟩
       ∧ ρ = .inl rbi)
-    ∨ ρ.isRight)
+    ∨ ρ.fails)
 
 aegis_prove "core::starknet::info::get_block_info" :=
   fun m _ s _ s' ρ => by
@@ -62,8 +69,8 @@ aegis_prove "core::starknet::info::get_block_info" :=
     · exact ⟨rfl, .inr rfl⟩
 
 aegis_spec "core::starknet::info::get_contract_address" :=
-  fun m _ s _ s' ρ =>
-  s = s' ∧ (ρ = .inl m.contractAddress ∨ ρ.isRight)
+  fun m _ s _ s' (ρ : PanicResult _) =>
+  s = s' ∧ (ρ = .inl m.contractAddress ∨ ρ.fails)
 
 aegis_prove "core::starknet::info::get_contract_address" :=
   fun m _ s _ s' ρ => by
@@ -78,8 +85,8 @@ aegis_prove "core::starknet::info::get_contract_address" :=
     · exact ⟨rfl, .inr rfl⟩
 
 aegis_spec "core::starknet::info::get_block_timestamp" :=
-  fun m _ s _ s' ρ =>
-  s = s' ∧ (ρ = .inl m.blockTimestamp ∨ ρ.isRight)
+  fun m _ s _ s' (ρ : PanicResult _) =>
+  s = s' ∧ (ρ = .inl m.blockTimestamp ∨ ρ.fails)
 
 aegis_prove "core::starknet::info::get_block_timestamp" :=
   fun m _ s _ s' ρ => by

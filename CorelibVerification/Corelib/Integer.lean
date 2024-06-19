@@ -2,6 +2,7 @@ import CorelibVerification.Aux.ZMod
 import CorelibVerification.Corelib.Result
 import CorelibVerification.Aux.UInt256
 import CorelibVerification.Aux.Bool
+import CorelibVerification.Aux.PanicResult
 import Aegis.Tactic
 
 open Sierra
@@ -185,8 +186,9 @@ aegis_prove "core::integer::DowncastableTryInto<core::integer::u128, core::integ
  aesop (add safe forward Nat.lt_le_asymm)
 
 aegis_spec "core::integer::U8Mul::mul" :=
-  fun _ _ a b _ ρ =>
-  (a.val * b.val < U8_MOD ∧ ρ = .inl (a * b)) ∨ (U8_MOD ≤ a.val * b.val ∧ ρ.isRight)
+  fun _ _ a b _ (ρ : PanicResult _) =>
+  a.val * b.val < U8_MOD ∧ ρ = .inl (a * b)
+  ∨ U8_MOD ≤ a.val * b.val ∧ ρ.fails
 
 aegis_prove "core::integer::U8Mul::mul" := fun _ _ a b _ ρ => by
   unfold «spec_core::integer::U8Mul::mul»
@@ -203,8 +205,9 @@ aegis_prove "core::integer::U8Mul::mul" := fun _ _ a b _ ρ => by
     apply safe [ZMod.cast_cast_of_lt])
 
 aegis_spec "core::integer::U16Mul::mul" :=
-  fun _ _ a b _ ρ =>
-  (a.val * b.val < U16_MOD ∧ ρ = .inl (a * b)) ∨ (U16_MOD ≤ a.val * b.val ∧ ρ.isRight)
+  fun _ _ a b _ (ρ : PanicResult _) =>
+  a.val * b.val < U16_MOD ∧ ρ = .inl (a * b)
+  ∨ U16_MOD ≤ a.val * b.val ∧ ρ.fails
 
 aegis_prove "core::integer::U16Mul::mul" := fun _ _ a b _ ρ => by
   unfold «spec_core::integer::U16Mul::mul»
@@ -221,8 +224,9 @@ aegis_prove "core::integer::U16Mul::mul" := fun _ _ a b _ ρ => by
     apply safe [ZMod.cast_cast_of_lt])
 
 aegis_spec "core::integer::U32Mul::mul" :=
-  fun _ _ a b _ ρ =>
-  (a.val * b.val < U32_MOD ∧ ρ = .inl (a * b)) ∨ (U32_MOD ≤ a.val * b.val ∧ ρ.isRight)
+  fun _ _ a b _ (ρ : PanicResult _) =>
+  a.val * b.val < U32_MOD ∧ ρ = .inl (a * b)
+  ∨ U32_MOD ≤ a.val * b.val ∧ ρ.fails
 
 aegis_prove "core::integer::U32Mul::mul" := fun _ _ a b _ ρ => by
   unfold «spec_core::integer::U32Mul::mul»
@@ -239,8 +243,9 @@ aegis_prove "core::integer::U32Mul::mul" := fun _ _ a b _ ρ => by
     apply safe [ZMod.cast_cast_of_lt])
 
 aegis_spec "core::integer::U64Mul::mul" :=
-  fun _ _ a b _ ρ =>
-  (a.val * b.val < U64_MOD ∧ ρ = .inl (a * b)) ∨ (U64_MOD ≤ a.val * b.val ∧ ρ.isRight)
+  fun _ _ a b _ (ρ : PanicResult _) =>
+  a.val * b.val < U64_MOD ∧ ρ = .inl (a * b)
+  ∨ U64_MOD ≤ a.val * b.val ∧ ρ.fails
 
 aegis_prove "core::integer::U64Mul::mul" := fun _ _ a b _ ρ => by
   unfold «spec_core::integer::U64Mul::mul»
@@ -257,8 +262,9 @@ aegis_prove "core::integer::U64Mul::mul" := fun _ _ a b _ ρ => by
     apply safe [ZMod.cast_cast_of_lt])
 
 aegis_spec "core::integer::U128Mul::mul" :=
-  fun _ _ a b _ ρ =>
-  (a.val * b.val < U128_MOD ∧ ρ = .inl (a * b)) ∨ (U128_MOD ≤ a.val * b.val ∧ ρ.isRight)
+  fun _ _ a b _ (ρ : PanicResult _) =>
+  a.val * b.val < U128_MOD ∧ ρ = .inl (a * b)
+  ∨ U128_MOD ≤ a.val * b.val ∧ ρ.fails
 
 aegis_prove "core::integer::U128Mul::mul" := fun _ _ a b _ ρ => by
   unfold «spec_core::integer::U128Mul::mul»
@@ -282,17 +288,23 @@ aegis_prove "core::result::ResultTraitImpl<core::integer::u128, core::integer::u
   unfold «spec_core::result::ResultTraitImpl<core::integer::u128, core::integer::u128>::expect<core::integer::u128Drop>»
   aesop
 
-aegis_spec "core::integer::U128Sub::sub" := fun _ _ a b _ ρ =>
-  if b.val ≤ a.val then ρ = .inl (a - b) else ρ.isRight
+aegis_spec "core::integer::U128Sub::sub" :=
+  fun _ _ a b _ (ρ : PanicResult _) =>
+  b.val ≤ a.val ∧ ρ = .inl (a - b)
+  ∨ a.val < b.val ∧ ρ.fails
 
-aegis_prove "core::integer::U128Sub::sub" := fun _ _ a b _ ρ => by
+aegis_prove "core::integer::U128Sub::sub" :=
+  fun _ _ a b _ ρ => by
   unfold «spec_core::integer::U128Sub::sub»
-  aesop (add forward safe Nat.lt_le_asymm)
+  aesop
 
-aegis_spec "core::integer::u128_try_from_felt252" := fun _ _ a _ ρ =>
-  a.val < U128_MOD ∧ ρ = .inl a.cast ∨ U128_MOD ≤ a.val ∧ ρ = .inr ()
+aegis_spec "core::integer::u128_try_from_felt252" :=
+  fun _ _ a _ ρ =>
+  a.val < U128_MOD ∧ ρ = .inl a.cast
+  ∨ U128_MOD ≤ a.val ∧ ρ = .inr ()
 
-aegis_prove "core::integer::u128_try_from_felt252" := fun _ _ a _ ρ => by
+aegis_prove "core::integer::u128_try_from_felt252" :=
+  fun _ _ a _ ρ => by
   unfold «spec_core::integer::u128_try_from_felt252»
   rintro ⟨b,c,(⟨h,rfl⟩|⟨hne,h,rfl⟩)⟩
   · aesop
@@ -302,19 +314,19 @@ aegis_prove "core::integer::u128_try_from_felt252" := fun _ _ a _ ρ => by
       exact le_trans (Nat.le_mul_of_pos_right _ hne) (Nat.le_add_right _ c.val)
     right; exact ⟨this, rfl⟩
 
-aegis_spec "core::integer::U128BitNot::bitnot" := fun _ _ a _ ρ =>
+aegis_spec "core::integer::U128BitNot::bitnot" :=
+  fun _ _ a _ (ρ : PanicResult _) =>
   ρ = .inl (340282366920938463463374607431768211455 - a)
 
-aegis_prove "core::integer::U128BitNot::bitnot" := fun _ _ a _ ρ => by
+aegis_prove "core::integer::U128BitNot::bitnot" :=
+  fun _ _ a _ (ρ : PanicResult _) => by
   unfold «spec_core::integer::U128BitNot::bitnot»
-  have hlt' : 340282366920938463463374607431768211455 < U128_MOD := by norm_num [U128_MOD]
   rintro ⟨_, _, _, h, (⟨rfl,rfl⟩|⟨rfl,rfl⟩)⟩
-    <;> split_ifs at h with hlt
-    <;> erw [ZMod.val_cast_of_lt hlt'] at hlt
   · aesop
-  · aesop
-  · exfalso
-    exact Nat.lt_le_asymm a.val_lt (lt_of_not_le hlt)
+  · simp only [Int.ofNat_eq_coe, Nat.cast_ofNat, Int.int_cast_ofNat, and_false,
+      PanicResult.fails_inr, and_true, false_or] at h
+    exfalso
+    apply Nat.lt_le_asymm a.val_lt h
 
 aegis_spec "core::integer::u8_try_as_non_zero" :=
   fun _ a ρ =>
@@ -409,29 +421,32 @@ aegis_prove "core::integer::u256_from_felt252" :=
   rintro ⟨_,_,(⟨h,rfl⟩|⟨_,_,rfl⟩)⟩ <;> aesop (add forward safe ZMod.val_cast_eq_val_of_lt)
 
 aegis_spec "core::integer::U64TryIntoNonZero::try_into" :=
-  fun _ a ρ =>
-  (a ≠ 0 ∧ ρ = .inl (.inl a)) ∨ (a = 0 ∧ ρ.isRight)
+  fun _ a (ρ : PanicResult _) =>
+  a ≠ 0 ∧ ρ = .inl (.inl a)
+  ∨ a = 0 ∧ ρ.fails
 
 aegis_prove "core::integer::U64TryIntoNonZero::try_into" :=
-  fun _ a ρ => by
+  fun _ a (ρ : PanicResult _) => by
   unfold «spec_core::integer::U64TryIntoNonZero::try_into»
   aesop
 
 aegis_spec "core::integer::U128TryIntoNonZero::try_into" :=
-  fun _ a ρ =>
-  (a ≠ 0 ∧ ρ = .inl (.inl a)) ∨ (a = 0 ∧ ρ.isRight)
+  fun _ a (ρ : PanicResult _) =>
+  a ≠ 0 ∧ ρ = .inl (.inl a)
+  ∨ a = 0 ∧ ρ.fails
 
 aegis_prove "core::integer::U128TryIntoNonZero::try_into" :=
-  fun _ a ρ => by
+  fun _ a (ρ : PanicResult _) => by
   unfold «spec_core::integer::U128TryIntoNonZero::try_into»
   aesop
 
 aegis_spec "core::integer::U256TryIntoNonZero::try_into" :=
-  fun _ a ρ =>
-  ((a.1 ≠ 0 ∨ a.2 ≠ 0) ∧ ρ = .inl (.inl a)) ∨ (a.1 = 0 ∧ a.2 = 0 ∧ ρ.isRight)
+  fun _ a (ρ : PanicResult _) =>
+  (a.1 ≠ 0 ∨ a.2 ≠ 0) ∧ ρ = .inl (.inl a)
+  ∨ a.1 = 0 ∧ a.2 = 0 ∧ ρ.fails
 
 aegis_prove "core::integer::U256TryIntoNonZero::try_into" :=
-  fun _ a ρ => by
+  fun _ a (ρ : PanicResult _) => by
   unfold «spec_core::integer::U256TryIntoNonZero::try_into»
   rintro ⟨_,_,_,(⟨h,rfl⟩|h),h'⟩
   · rcases h' with (⟨h',rfl⟩|h') <;> aesop
@@ -439,7 +454,8 @@ aegis_prove "core::integer::U256TryIntoNonZero::try_into" :=
 
 aegis_spec "core::integer::Felt252TryIntoU8::try_into" :=
   fun _ _ a _ ρ =>
-  (a.val < U8_MOD ∧ ρ = .inl a.cast) ∨ (U8_MOD ≤ a.val ∧ ρ.isRight)
+  a.val < U8_MOD ∧ ρ = .inl a.cast
+  ∨ U8_MOD ≤ a.val ∧ ρ.isRight
 
 aegis_prove "core::integer::Felt252TryIntoU8::try_into" :=
   fun _ _ a _ ρ => by
@@ -474,56 +490,62 @@ aegis_prove "core::integer::Felt252TryIntoU64::try_into" :=
   aesop
 
 aegis_spec "core::integer::U8Add::add" :=
-  fun _ _ a b _ ρ =>
-  (a.val + b.val < U8_MOD ∧ ρ = .inl (a + b)) ∨ (U8_MOD ≤ a.val + b.val ∧ ρ.isRight)
+  fun _ _ a b _ (ρ : PanicResult _) =>
+  a.val + b.val < U8_MOD ∧ ρ = .inl (a + b)
+  ∨ U8_MOD ≤ a.val + b.val ∧ ρ.fails
 
 aegis_prove "core::integer::U8Add::add" :=
-  fun _ _ a b _ ρ => by
+  fun _ _ a b _ (ρ : PanicResult _) => by
   unfold «spec_core::integer::U8Add::add»
   aesop
 
 aegis_spec "core::integer::U16Add::add" :=
-  fun _ _ a b _ ρ =>
-  (a.val + b.val < U16_MOD ∧ ρ = .inl (a + b)) ∨ (U16_MOD ≤ a.val + b.val ∧ ρ.isRight)
+  fun _ _ a b _ (ρ : PanicResult _) =>
+  a.val + b.val < U16_MOD ∧ ρ = .inl (a + b)
+  ∨ U16_MOD ≤ a.val + b.val ∧ ρ.fails
 
 aegis_prove "core::integer::U16Add::add" :=
-  fun _ _ a b _ ρ => by
+  fun _ _ a b _ (ρ : PanicResult _) => by
   unfold «spec_core::integer::U16Add::add»
   aesop
 
 aegis_spec "core::integer::U16Sub::sub" :=
-  fun _ _ a b _ ρ =>
-  (b.val ≤ a.val ∧ ρ = .inl (a - b)) ∨ (a.val < b.val ∧ ρ.isRight)
+  fun _ _ a b _ (ρ : PanicResult _) =>
+  b.val ≤ a.val ∧ ρ = .inl (a - b)
+  ∨ a.val < b.val ∧ ρ.fails
 
 aegis_prove "core::integer::U16Sub::sub" :=
-   fun _ _ a b _ ρ => by
+   fun _ _ a b _ (ρ : PanicResult _) => by
    unfold «spec_core::integer::U16Sub::sub»
    aesop
 
 aegis_spec "core::integer::U32Add::add" :=
-  fun _ _ a b _ ρ =>
-  (a.val + b.val < U32_MOD ∧ ρ = .inl (a + b)) ∨ (U32_MOD ≤ a.val + b.val ∧ ρ.isRight)
+  fun _ _ a b _ (ρ : PanicResult _) =>
+  a.val + b.val < U32_MOD ∧ ρ = .inl (a + b)
+  ∨ U32_MOD ≤ a.val + b.val ∧ ρ.fails
 
 aegis_prove "core::integer::U32Add::add" :=
-  fun _ _ a b _ ρ => by
+  fun _ _ a b _ (ρ : PanicResult _) => by
   unfold «spec_core::integer::U32Add::add»
   aesop
 
 aegis_spec "core::integer::U32Sub::sub" :=
-  fun _ _ a b _ ρ =>
-  (b.val ≤ a.val ∧ ρ = .inl (a - b)) ∨ (a.val < b.val ∧ ρ.isRight)
+  fun _ _ a b _ (ρ : PanicResult _) =>
+  b.val ≤ a.val ∧ ρ = .inl (a - b)
+  ∨ a.val < b.val ∧ ρ.fails
 
 aegis_prove "core::integer::U32Sub::sub" :=
-   fun _ _ a b _ ρ => by
+   fun _ _ a b _ (ρ : PanicResult _) => by
    unfold «spec_core::integer::U32Sub::sub»
    aesop
 
 aegis_spec "core::integer::U64Add::add" :=
-  fun _ _ a b _ ρ =>
-  (a.val + b.val < U64_MOD ∧ ρ = .inl (a + b)) ∨ (U64_MOD ≤ a.val + b.val ∧ ρ.isRight)
+  fun _ _ a b _ (ρ : PanicResult _) =>
+  a.val + b.val < U64_MOD ∧ ρ = .inl (a + b)
+  ∨ U64_MOD ≤ a.val + b.val ∧ ρ.fails
 
 aegis_prove "core::integer::U64Add::add" :=
-  fun _ _ a b _ ρ => by
+  fun _ _ a b _ (ρ : PanicResult _) => by
   unfold «spec_core::integer::U64Add::add»
   aesop
 
@@ -573,17 +595,19 @@ aegis_prove "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer
   aesop
 
 aegis_spec "core::integer::u8_as_non_zero" :=
-  fun _ a ρ =>
-  (a ≠ 0 ∧ ρ = .inl a) ∨ (a = 0 ∧ ρ.isRight)
+  fun _ a (ρ : PanicResult _) =>
+  a ≠ 0 ∧ ρ = .inl a
+  ∨ a = 0 ∧ ρ.fails
 
 aegis_prove "core::integer::u8_as_non_zero" :=
-  fun _ a ρ => by
+  fun _ a (ρ : PanicResult _) => by
   unfold «spec_core::integer::u8_as_non_zero»
   aesop
 
 aegis_spec "core::integer::u16_as_non_zero" :=
-  fun _ a ρ =>
-  (a ≠ 0 ∧ ρ = .inl a) ∨ (a = 0 ∧ ρ.isRight)
+  fun _ a (ρ : PanicResult _) =>
+  a ≠ 0 ∧ ρ = .inl a
+  ∨ a = 0 ∧ ρ.fails
 
 aegis_prove "core::integer::u16_as_non_zero" :=
   fun _ a ρ => by
@@ -591,20 +615,26 @@ aegis_prove "core::integer::u16_as_non_zero" :=
   aesop
 
 aegis_spec "core::integer::u32_as_non_zero" :=
-  fun _ a ρ =>
-  (a ≠ 0 ∧ ρ = .inl a) ∨ (a = 0 ∧ ρ.isRight)
+  fun _ a (ρ : PanicResult _) =>
+  a ≠ 0 ∧ ρ = .inl a
+  ∨ a = 0 ∧ ρ.fails
 
 aegis_prove "core::integer::u32_as_non_zero" :=
-  fun _ a ρ => by
+  fun _ a (ρ : PanicResult _) => by
   unfold «spec_core::integer::u32_as_non_zero»
   aesop
 
 aegis_spec "core::integer::U8TryIntoNonZero::try_into" :=
-  fun _ a ρ =>
-  (a ≠ 0 ∧ ρ = .inl (.inl a)) ∨ (a = 0 ∧ ρ.isRight)
+  fun _ a (ρ : _) =>
+  a ≠ 0 ∧ ρ = .inl (.inl a)
+  ∨ a = 0 ∧ ρ.isRight
+
+example (h : (.inl a : PanicResult β) = .inl a') : a = a' := by
+  simp_all only [Sum.inl.injEq]
+  sorry
 
 aegis_prove "core::integer::U8TryIntoNonZero::try_into" :=
-  fun _ a ρ => by
+  fun _ a (ρ :  _) => by
   unfold «spec_core::integer::U8TryIntoNonZero::try_into»
   aesop
 
