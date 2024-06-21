@@ -1,6 +1,5 @@
 import Aegis.Types
 import Aegis.Aux.ZMod.HMul
-import Mathlib.Tactic.LibrarySearch
 
 open Sierra
 
@@ -33,7 +32,7 @@ theorem ZMod.val_pow_le {m n : ℕ} [Fact (1 < n)] {a : ZMod n} : (a ^ m).val �
   | succ m ih =>
     rw [pow_succ, pow_succ]
     apply le_trans (ZMod.val_mul_le _ _)
-    apply Nat.mul_le_mul_left _ ih
+    apply Nat.mul_le_mul_right _ ih
 
 instance : Fact (1 < U8_MOD) := ⟨by unfold U8_MOD; norm_num⟩
 
@@ -82,7 +81,7 @@ theorem ZMod.cast_ZMod_eq_zero_iff_of_lt {m n : ℕ} [NeZero m] (h : m < n) (a :
     (a.cast : ZMod n) = 0 ↔ a = 0 := by
   constructor
   · intro e
-    rw [ZMod.cast_eq_val, ZMod.nat_cast_zmod_eq_zero_iff_dvd] at e
+    rw [ZMod.cast_eq_val, ZMod.natCast_zmod_eq_zero_iff_dvd] at e
     have := a.val_lt
     by_cases hz : val a = 0
     · rwa [← ZMod.val_eq_zero]

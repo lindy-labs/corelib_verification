@@ -1,5 +1,4 @@
 import CorelibVerification.Aux.ZMod
-import Mathlib.Tactic.LibrarySearch
 
 namespace Sierra
 

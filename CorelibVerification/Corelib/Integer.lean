@@ -294,13 +294,7 @@ aegis_spec "core::integer::u128_try_from_felt252" := fun _ _ a _ ρ =>
 
 aegis_prove "core::integer::u128_try_from_felt252" := fun _ _ a _ ρ => by
   unfold «spec_core::integer::u128_try_from_felt252»
-  rintro ⟨b,c,(⟨h,rfl⟩|⟨hne,h,rfl⟩)⟩
-  · aesop
-  · have : 2 ^ 128 ≤ a.val := by
-      rw [← ZMod.val_ne_zero, ← pos_iff_ne_zero] at hne
-      rw [← h]
-      exact le_trans (Nat.le_mul_of_pos_right _ hne) (Nat.le_add_right _ c.val)
-    right; exact ⟨this, rfl⟩
+  aesop
 
 aegis_spec "core::integer::U128BitNot::bitnot" := fun _ _ a _ ρ =>
   ρ = .inl (340282366920938463463374607431768211455 - a)
@@ -400,13 +394,21 @@ aegis_prove "core::integer::u256_as_non_zero" :=
   · rcases h' with (⟨rfl,rfl⟩|h') <;> aesop
 
 aegis_spec "core::integer::u256_from_felt252" :=
-  fun _ _ a _ ρ =>
-  U128_MOD * ρ.2.val + ρ.1.val = a.val
+  fun _ _ a _ (ρ : UInt256) =>
+  ρ.val = a.val
 
 aegis_prove "core::integer::u256_from_felt252" :=
   fun _ _ a _ ρ => by
   unfold «spec_core::integer::u256_from_felt252»
-  rintro ⟨_,_,(⟨h,rfl⟩|⟨_,_,rfl⟩)⟩ <;> aesop (add forward safe ZMod.val_cast_eq_val_of_lt)
+  haveI : NeZero U128_MOD := ⟨by norm_num [U128_MOD]⟩
+  rintro (⟨h,rfl⟩|⟨-,rfl⟩) -- <;> aesop (add forward safe ZMod.val_cast_eq_val_of_lt)
+  · simp [ZMod.val_cast_eq_val_of_lt h, UInt256.val]
+  · simp only [UInt256.val, ZMod.val_natCast]
+    rw [Nat.mod_eq_of_lt (Nat.div_lt_of_lt_mul
+      (lt_trans (ZMod.val_lt _) (by norm_num [PRIME, U128_MOD]))),
+      add_comm]
+    exact Nat.mod_add_div a.val U128_MOD
+
 
 aegis_spec "core::integer::U64TryIntoNonZero::try_into" :=
   fun _ a ρ =>

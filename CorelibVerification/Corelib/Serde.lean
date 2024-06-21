@@ -144,7 +144,46 @@ aegis_prove "core::integer::u256Serde::deserialize" :=
   · rcases a with (_|⟨a₁,(_|⟨a₂,as⟩)⟩)
     · aesop
     · aesop
-    · aesop
+    · rename_i x x_1 x_2
+      simp_all only [List.head?_cons, List.tail_cons, imp_false, Sum.forall, Sum.inl.injEq, not_false_eq_true,
+        implies_true, not_true_eq_false, false_implies, and_self, Option.isSome_filter_some, decide_eq_true_eq]
+      obtain ⟨w, h⟩ := h
+      obtain ⟨w_1, h⟩ := h
+      obtain ⟨w_2, h⟩ := h
+      obtain ⟨w_3, h⟩ := h
+      rcases h with ⟨h_1⟩ | ⟨h_2⟩
+      · obtain ⟨left, right⟩ := h_1
+        rcases right with ⟨h⟩ | ⟨h_1⟩
+        · simp_all only
+          obtain ⟨-, right⟩ := h
+          obtain ⟨left_2, right⟩ := right
+          subst right left_2
+          split
+          · rename_i h
+            simp_all only [not_lt, Option.filter_decide_false_some, Option.map_none', Option.toSum_none]
+          · rename_i h
+            simp_all only [not_le]
+        · simp_all only
+          obtain ⟨left_1, right⟩ := h_1
+          obtain ⟨left_2, right⟩ := right
+          subst left_2 right
+          split
+          · rename_i h
+            simp_all only [not_lt, Option.filter_decide_false_some, Option.map_none', Option.toSum_none]
+            rw [← left] at left_1
+            simp at left_1
+          · rename_i h
+            simp_all only [not_le]
+      · simp_all only
+        obtain ⟨left, right⟩ := h_2
+        obtain ⟨left_1, right⟩ := right
+        subst left_1 right
+        split
+        · rename_i h
+          simp_all only [not_lt, Option.filter_decide_false_some, Option.map_none', Option.toSum_none]
+        · rename_i h
+          simp_all only [not_le, List.cons_ne_self, Option.filter_decide_true_some, Option.map_some',
+            Option.toSum_some]
   · rcases a with (_|⟨a₁,(_|⟨a₂,as⟩)⟩)
     · aesop
     · by_cases hlt : a₁.val < U128_MOD
@@ -325,7 +364,9 @@ aegis_prove "core::array::deserialize_array_helper::<core::integer::u128, core::
               rw [← Nat.succ_pred_eq_of_pos hr', List.take_succ_cons] at hx
               aesop
             · conv_rhs => rw [← Nat.succ_pred_eq_of_pos hr']
+              simp
             · conv_rhs => rw [← Nat.succ_pred_eq_of_pos hr']
+              simp
           · rcases hrec with ⟨rfl,rfl⟩
             rw [ite_prop_iff_or]; left
             rw [not_and_or] at hrs; rcases hrs with (hrs|hrs)
@@ -336,6 +377,7 @@ aegis_prove "core::array::deserialize_array_helper::<core::integer::u128, core::
                 simp only [List.all_eq_true, decide_eq_true_eq, false_and, ge_iff_le,
                   List.tail_cons, Sum.inl.injEq, Prod.mk.injEq, and_false, and_true, ite_false]
                 conv_rhs => rw [List.dropWhileN_cons_of_pos _ _ _ hr', ha]
+                simp
             · constructor
               · refine le_trans (Nat.mul_le_mul_right _ ?_) hrsg
                 simp_all [List.takeWhileN_cons_of_pos]
@@ -375,8 +417,8 @@ aegis_prove "core::array::deserialize_array_helper::<core::integer::u128, core::
               simp [h', hle]
   -- Case: Not enough gas for one run
   · simp only [List.length_takeWhileN, add_mul, one_mul, List.all_eq_true, decide_eq_true_eq,
-      Int.ofNat_eq_coe, Nat.cast_ofNat, Int.int_cast_ofNat, List.nil_append, and_false, ite_self,
-      Sum.isRight_inr, if_true_right, not_le, or_false]
+      Int.ofNat_eq_coe, Nat.cast_ofNat, Int.cast_ofNat, List.nil_append, and_false, ite_self,
+      Sum.isRight_inr, if_false_left, not_le, and_true]
     apply Nat.lt_add_left _ h
 
 aegis_spec "core::array::deserialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>" :=
@@ -436,7 +478,7 @@ aegis_prove "core::array::deserialize_array_helper::<core::felt252, core::Felt25
       · have : s = [] := by rwa [Option.inr_eq_toSum_iff, List.head?_eq_none_iff] at h
         simp [this, hne, hle]
   -- Case: Not enough gas for one run
-  · aesop
+  · aesop (add simp [Nat.lt_add_left])
 
 aegis_spec "core::array::ArraySerde::<core::felt252, core::Felt252Serde, core::felt252Drop>::deserialize" :=
   fun m _ gas a _ gas' ρ =>
@@ -528,7 +570,9 @@ aegis_prove "core::array::deserialize_array_helper<core::integer::u64, core::ser
               rw [← Nat.succ_pred_eq_of_pos hr', List.take_succ_cons] at hx
               aesop
             · conv_rhs => rw [← Nat.succ_pred_eq_of_pos hr']
+              simp
             · conv_rhs => rw [← Nat.succ_pred_eq_of_pos hr']
+              simp
           · rcases hrec with ⟨rfl,rfl⟩
             rw [ite_prop_iff_or]; left
             rw [not_and_or] at hrs; rcases hrs with (hrs|hrs)
@@ -539,6 +583,7 @@ aegis_prove "core::array::deserialize_array_helper<core::integer::u64, core::ser
                 simp only [List.all_eq_true, decide_eq_true_eq, false_and, ge_iff_le,
                   List.tail_cons, Sum.inl.injEq, Prod.mk.injEq, and_false, and_true, ite_false]
                 conv_rhs => rw [List.dropWhileN_cons_of_pos _ _ _ hr', ha]
+                simp
             · constructor
               · refine le_trans (Nat.mul_le_mul_right _ ?_) hrsg
                 simp_all [List.takeWhileN_cons_of_pos]
@@ -577,10 +622,7 @@ aegis_prove "core::array::deserialize_array_helper<core::integer::u64, core::ser
             · simp only [decide_eq_true_eq] at h'
               simp [h', hle]
   -- Case: Not enough gas for one run
-  · simp only [List.length_takeWhileN, add_mul, one_mul, List.all_eq_true, decide_eq_true_eq,
-      Int.ofNat_eq_coe, Nat.cast_ofNat, Int.int_cast_ofNat, List.nil_append, and_false, ite_self,
-      Sum.isRight_inr, if_true_right, not_le, or_false]
-    apply Nat.lt_add_left _ h
+  · aesop (add simp [Nat.lt_add_left])
 
 aegis_spec "core::array::ArraySerde<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>::deserialize" :=
   fun m _ gas a _ gas' ρ =>
