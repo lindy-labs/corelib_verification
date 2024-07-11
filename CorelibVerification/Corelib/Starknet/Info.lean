@@ -7,31 +7,43 @@ aegis_spec "core::starknet::info::get_execution_info" :=
   fun m _ s _ s' ρ =>
   s = s' ∧
   ((∃ rei rbi rti, ρ = .inl rei ∧
-      m.boxHeap .ExecutionInfo rei = .some ⟨rbi, rti,
+      m.boxHeap .V2ExecutionInfo rei = .some ⟨rbi, rti,
       m.callerAddress, m.contractAddress, m.entryPointSelector⟩
       ∧ m.boxHeap .BlockInfo rbi = .some ⟨m.blockNumber, m.blockTimestamp, m.sequencerAddress⟩
-      ∧ m.boxHeap .TxInfo rti = .some ⟨m.txVersion, m.txContract, m.txMaxFee, m.txSignature,
-        m.txHash, m.txChainIdentifier, m.txNonce⟩)
+      ∧ m.boxHeap .V2TxInfo rti = .some ⟨m.txVersion, m.txContract, m.txMaxFee, m.txSignature,
+        m.txHash, m.txChainIdentifier, m.txNonce, m.txResourceBounds, m.txTip, m.txPaymasterData,
+        m.txDataAvailabilityNonce, m.txDataAvailabilityFee, m.txAccountDeploymentData⟩)
     ∨ ρ.isRight)
 
 aegis_prove "core::starknet::info::get_execution_info" :=
   fun m _ s _ s' ρ => by
   unfold «spec_core::starknet::info::get_execution_info»
-  rintro ⟨_,_,_,_,_,(⟨⟨_,_,_,_,_,h₁,h₃,h₄,rfl,rfl,rfl⟩,h₂,h₅⟩|⟨h₁,h₂⟩)⟩
-  · simp only [Sum.inl.injEq, exists_eq_left', Sum.isRight_inl, false_and, or_false] at h₂
-    subst h₂
-    simp only [Sum.inl.injEq, false_and, or_false] at h₅
-    rcases h₅ with ⟨rfl,rfl,rfl⟩
-    exact ⟨rfl, .inl ⟨_,_,_,rfl,h₁,h₃,h₄⟩⟩
-  · simp only [false_and, exists_const, Sum.isRight_inr, true_and, false_or] at h₁
-    rcases h₂ with (⟨rfl,rfl,rfl⟩|⟨rfl,rfl,rfl⟩)
-    · simp at h₁
-    · exact ⟨rfl, .inr rfl⟩
+  rintro ⟨_,_,ρ',h⟩
+  rcases h with (⟨h₁,h,rfl,rfl⟩|⟨h,rfl,rfl⟩)
+  · rcases h with (h|h)
+    · simp only [Sum.isLeft_inl, Sum.getLeft?_inl, Option.get!_some, true_and] at h
+      rcases h with ⟨h,rfl⟩
+      rcases h₁ with ⟨_,rbi,_,rti,_,h₁,h₂,h₃,rfl,rfl,rfl⟩
+      refine ⟨rfl, .inl ?_⟩
+      use ρ'.getLeft?.get!
+      use rbi
+      use rti
+      refine ⟨?_, h₁, h₂, h₃⟩
+      rcases ρ'  -- TODO
+      · simp
+      · simp at h
+    · simp at h
+  · simp only [Sum.isLeft_inr, Bool.false_eq_true, Sum.getLeft?_inr, Option.get!_none,
+      Nat.default_eq_zero, false_and, Sum.isRight_inr, true_and, false_or] at h
+    refine ⟨rfl, .inr ?_⟩
+    assumption
 
-aegis_spec "core::starknet::info::get_caller_address" := fun m _ s _ s' ρ =>
+aegis_spec "core::starknet::info::get_caller_address" :=
+  fun m _ s _ s' ρ =>
   s = s' ∧ (ρ = .inl m.callerAddress ∨ ρ.isRight)
 
-aegis_prove "core::starknet::info::get_caller_address" := fun m _ s _ s' ρ => by
+aegis_prove "core::starknet::info::get_caller_address" :=
+  fun m _ s _ s' ρ => by
   unfold «spec_core::starknet::info::get_caller_address»
   rintro ⟨_,_,_,_,_,_,_,_,_,_,rfl,h,(⟨rfl,h',rfl,rfl,rfl⟩|⟨rfl,rfl,rfl⟩)⟩
   · simp only [Sum.isRight_inl, or_false] at h

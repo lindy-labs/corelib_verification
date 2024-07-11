@@ -1,4 +1,5 @@
 import CorelibVerification.Corelib.Pedersen
+import CorelibVerification.Corelib.Starknet.ContractAddress
 
 namespace Aegis
 
