@@ -17,11 +17,11 @@ aegis_prove "core::starknet::contract_address::Felt252TryIntoContractAddress::tr
     simp only [h, and_self]
 
 aegis_spec "core::starknet::contract_address::ContractAddressSerde::serialize" :=
-  fun _ a b ρ _ =>
+  fun _ a b ρ =>
   ρ = b ++ [a.cast]
 
 aegis_prove "core::starknet::contract_address::ContractAddressSerde::serialize" :=
-  fun _ a b ρ _ => by
+  fun _ a b ρ => by
   unfold «spec_core::starknet::contract_address::ContractAddressSerde::serialize»
   intro
   simp_all only [and_true]
@@ -43,3 +43,12 @@ aegis_prove "core::option::OptionTraitImpl<core::starknet::contract_address::Con
   fun _ a b ρ => by
   unfold «spec_core::option::OptionTraitImpl<core::starknet::contract_address::ContractAddress>::expect»
   aesop
+
+aegis_spec "core::starknet::contract_address::ContractAddressIntoFelt252::into" :=
+  fun _ a ρ =>
+  ρ = a.cast
+
+aegis_prove "core::starknet::contract_address::ContractAddressIntoFelt252::into" :=
+  fun _ a ρ => by
+  rintro rfl
+  rfl

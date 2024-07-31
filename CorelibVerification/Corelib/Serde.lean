@@ -431,48 +431,43 @@ aegis_prove "core::array::deserialize_array_helper::<core::felt252, core::Felt25
   fun m _ gas s curr r _ gas' ρ => by
   unfold «spec_core::array::deserialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>»
   generalize m.costs id!"core::array::deserialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>" = c
-  rintro ⟨hd,_,_,_,_,_,_,_,(⟨hle,h⟩|⟨h,rfl⟩)⟩ <;> dsimp only
+  rintro ⟨_,_,hd,_,_,_,(⟨hle,h⟩|⟨h,rfl⟩)⟩ <;> dsimp only
   -- Case: Enough gas for one run
-  · rcases h with (⟨rfl,rfl,rfl⟩|⟨hne,h⟩)
-    -- Case: `r = 0`
-    · simp_all
+  · rcases h with (⟨hne,h⟩|⟨h,rfl,rfl⟩)
     -- Case: `r ≠ 0`
-    · have hr' : 0 < r.val := by rwa [Nat.pos_iff_ne_zero, ZMod.val_ne_zero]
+    · simp only [Int.ofNat_eq_coe, CharP.cast_eq_zero, Int.cast_zero,
+        Bool.toSierraBool_decide_inl'] at hne
+      have hr' : 0 < r.val := by rwa [Nat.pos_iff_ne_zero, ZMod.val_ne_zero]
       have hr : (r - 1).val = r.val - 1 := by apply ZMod.val_sub; rwa [ZMod.val_one]
       rcases h with (⟨hs,hrec,h⟩|⟨h,rfl,rfl⟩)
       -- Case: `s ≠ []`, recursive call succeeds (only case in which the context should now depend on the spec)
       · dsimp only at hrec;erw [hr] at hrec
         have hs' : 0 < s.length := by rw [List.length_pos]; rintro rfl; simp at hs
-        rcases h with (⟨rfl,rfl,rfl,rfl⟩|⟨rfl,rfl,rfl⟩)
-        -- Case: recursive call does not panic
-        · simp only [ge_iff_le, List.length_tail, tsub_le_iff_right, List.append_assoc,
-            List.singleton_append, Sum.inl.injEq, Prod.mk.injEq, Sum.isRight_inl,
-            Nat.sub_add_cancel hr', Nat.sub_add_cancel hs'] at hrec
-          simp only [add_mul, one_mul, ← Nat.le_sub_iff_add_le hle]
-          split_ifs at hrec with hrsg hrs
-          · rcases hrec with ⟨rfl,rfl,rfl⟩
-            rcases hrsg with (hrsg|hrsg) <;>
-            · have : hd ∈ s.head? := by rw [Option.inl_eq_toSum_iff] at hs; simp [hs]
-              simp_all only [ne_eq, ge_iff_le, Option.mem_def, true_or, or_true, tsub_le_iff_right,
-                Nat.sub_sub, add_comm c, List.drop_tail, Nat.sub_add_cancel hr', Sum.inl.injEq,
-                Prod.mk.injEq, List.append_cancel_left_eq, true_and, and_self, ite_true,
-                Sum.isRight_inl, Option.toSum_some]
-              rw [← List.cons_head?_tail this]
-              rw [List.tail_cons, ← @List.take_cons, Nat.sub_one, Nat.succ_pred_eq_of_pos hr']
-          · rcases hrec with ⟨rfl,rfl⟩
-            simpa [hrs, List.drop_tail, Nat.sub_add_cancel hr', prop_if_true_false, add_mul,
-              ← Nat.le_sub_iff_add_le hle]
+        rcases h with ⟨rfl,rfl⟩
+        simp only [ge_iff_le, List.length_tail, tsub_le_iff_right, List.append_assoc,
+          List.singleton_append, Sum.inl.injEq, Prod.mk.injEq, Sum.isRight_inl,
+          Nat.sub_add_cancel hr', Nat.sub_add_cancel hs'] at hrec
+        simp only [add_mul, one_mul, ← Nat.le_sub_iff_add_le hle]
+        split_ifs at hrec with hrsg hrs
+        · rcases hrec with ⟨rfl,rfl,rfl⟩
+          rcases hrsg with (hrsg|hrsg) <;>
+          · have : hd ∈ s.head? := by rw [Option.inl_eq_toSum_iff] at hs; simp [hs]
+            simp_all only [ne_eq, ge_iff_le, Option.mem_def, true_or, or_true, tsub_le_iff_right,
+              Nat.sub_sub, add_comm c, List.drop_tail, Nat.sub_add_cancel hr', Sum.inl.injEq,
+              Prod.mk.injEq, List.append_cancel_left_eq, true_and, and_self, ite_true,
+              Sum.isRight_inl, Option.toSum_some]
+            rw [← List.cons_head?_tail this]
+            rw [List.tail_cons, ← @List.take_cons, Nat.sub_one, Nat.succ_pred_eq_of_pos hr']
+        · rcases hrec with ⟨rfl,rfl⟩
+          simpa [hrs, List.drop_tail, Nat.sub_add_cancel hr', prop_if_true_false, add_mul,
+            ← Nat.le_sub_iff_add_le hle]
         -- Case: recursive call panics
-        · simp only [ge_iff_le, List.length_tail, tsub_le_iff_right, List.append_assoc,
-            List.singleton_append, and_false, ite_self, Sum.isRight_inr] at hrec
-          have h₁ : ¬ ((r.val + 1) * c ≤ gas ∨ (s.length + 1) * c ≤ gas) := by
-            split_ifs at hrec with h
-            simp only [ge_iff_le, Nat.sub_add_cancel hr', Nat.sub_add_cancel hs'] at h
-            simpa only [add_mul, one_mul, ← Nat.le_sub_iff_add_le hle]
-          simp only [h₁, ge_iff_le, and_false, ite_self, Sum.isRight_inr, ite_false]
+        · aesop
       -- Case: `s = []`
       · have : s = [] := by rwa [Option.inr_eq_toSum_iff, List.head?_eq_none_iff] at h
         simp [this, hne, hle]
+    -- Case: `r = 0`
+    · simp_all
   -- Case: Not enough gas for one run
   · aesop (add simp [Nat.lt_add_left])
 
@@ -523,9 +518,10 @@ aegis_prove "core::array::deserialize_array_helper<core::integer::u64, core::ser
   fun m _ gas s curr r _ gas' ρ => by
   unfold «spec_core::array::deserialize_array_helper<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>»
   generalize m.costs id!"core::array::deserialize_array_helper::<core::integer::u64, core::serde::into_felt252_based::SerdeImpl::<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>" = c
-  rintro ⟨hd,_,_,_,_,_,(⟨hle,h⟩|⟨h,rfl⟩)⟩
+  rintro ⟨hd,_,_,_,_,_,(⟨hle,h⟩|⟨h,rfl,rfl⟩)⟩
   -- Case: Enough gas for one run
-  · rcases h with (⟨hne,h⟩|⟨h,rfl,rfl⟩)
+  · dsimp only at h
+    rcases h with (⟨hne,h⟩|⟨h,rfl,rfl⟩)
     -- Case: `r ≠ 0`
     · simp only [Int.ofNat_eq_coe, CharP.cast_eq_zero, Int.cast_zero,
         Bool.toSierraBool_decide_inl'] at hne
@@ -533,7 +529,7 @@ aegis_prove "core::array::deserialize_array_helper<core::integer::u64, core::ser
       have hr : (r - 1).val = r.val - 1 := by apply ZMod.val_sub; rwa [ZMod.val_one]
       rcases h with (⟨hs,hrec,h⟩|⟨h,rfl,rfl⟩)
       -- Case: `s ≠ []`, recursive call succeeds
-      · dsimp only at hrec; erw [hr] at hrec
+      · erw [hr] at hrec
         have hs' : 0 < s.length := by rw [List.length_pos]; rintro rfl; simp at hs
         induction' s with s ss ihs
         · simp at hs'
@@ -541,65 +537,57 @@ aegis_prove "core::array::deserialize_array_helper<core::integer::u64, core::ser
         rw [Option.inl_eq_toSum_iff] at hs
         simp only [List.head?_cons, not_lt, Option.map_eq_some', Option.filter_eq_some_iff] at hs
         rcases hs with ⟨a, ⟨ha, ha'⟩, rfl⟩; rcases ha'
-        rcases h with (⟨rfl,rfl,rfl,rfl⟩|⟨rfl,rfl,rfl⟩)
+        rcases h with ⟨rfl,rfl⟩
         -- Case: recursive call does not panic
-        · simp only [List.tail_cons, List.length_takeWhileN, add_mul, one_mul, tsub_le_iff_right,
-            List.all_eq_true, decide_eq_true_eq, Nat.sub_add_cancel hr', List.map_take,
-            List.append_assoc, List.cons_append, List.nil_append] at hrec
-          simp only [add_mul, one_mul, ← Nat.le_sub_iff_add_le hle]
-          split_ifs at hrec with hrsg hrs
-          · rcases hrec with ⟨rfl,rfl,rfl⟩
-            --clear hrec  -- TODO seems to be a bug of that the obsolete `hrec` is still in context
-            rcases hrs with ⟨hrs,hrs'⟩
-            simp only [List.length_cons] at hrs
-            simp only [List.length_takeWhileN, List.length_cons, List.all_eq_true,
-              decide_eq_true_eq, List.map_take, List.map_cons]
-            refine ⟨?_,?_,?_,?_⟩
-            · rw [List.tail_cons] at hrs' hrsg
-              rw [List.takeWhileN_cons_of_pos _ _ _ hr', ha]
-              simp only [ite_true, List.length_cons, ge_iff_le]
-              rw [← Nat.add_one]
-              exact hrsg
-            · intros x hx
-              rw [← Nat.succ_pred_eq_of_pos hr', List.take_succ_cons] at hx
-              aesop
-            · conv_rhs => rw [← Nat.succ_pred_eq_of_pos hr']
+        simp only [ge_iff_le, List.length_tail, tsub_le_iff_right, List.append_assoc,
+          List.singleton_append, Sum.inl.injEq, Prod.mk.injEq, Sum.isRight_inl,
+          Nat.sub_add_cancel hr', Nat.sub_add_cancel hs'] at hrec
+        simp only [add_mul, one_mul, ← Nat.le_sub_iff_add_le hle]
+        split_ifs at hrec with hrsg hrs
+        · rcases hrec with ⟨rfl,rfl,rfl⟩
+          rcases hrs with ⟨hrs,hrs'⟩
+          simp only [List.length_cons] at hrs
+          simp only [ge_iff_le, List.length_cons, hrs, List.all_eq_true, decide_eq_true_eq,
+            true_and, tsub_le_iff_right, Nat.sub_sub, Nat.add_comm c, List.tail_cons, Sum.inl.injEq, Prod.mk.injEq,
+            List.append_cancel_left_eq, and_false, ite_prop_iff_or, not_forall, not_lt, exists_prop, or_false,
+            Sum.isRight_inl, not_le]
+          refine ⟨?_,?_,?_,?_⟩
+          · rw [List.tail_cons] at hrs' hrsg
+            rw [List.takeWhileN_cons_of_pos _ _ _ hr', ha]
+            simp only [ite_true, List.length_cons, ge_iff_le]
+            exact hrsg
+          · intros x hx
+            rw [← Nat.succ_pred_eq_of_pos hr', List.take_succ_cons] at hx
+            aesop
+          · conv_rhs => rw [← Nat.succ_pred_eq_of_pos hr']
+            simp
+          · conv_rhs => rw [← Nat.succ_pred_eq_of_pos hr']
+            simp
+        · rcases hrec with ⟨rfl,rfl⟩
+          rw [ite_prop_iff_or]; left
+          rw [not_and_or] at hrs; rcases hrs with (hrs|hrs)
+          · constructor
+            · refine le_trans (Nat.mul_le_mul_right _ ?_) hrsg
+              simp_all [List.takeWhileN_cons_of_pos]
+            · simp only [hrs]
+              simp only [List.all_eq_true, decide_eq_true_eq, false_and, ge_iff_le,
+                List.tail_cons, Sum.inl.injEq, Prod.mk.injEq, and_false, and_true, ite_false]
+              conv_rhs => rw [List.dropWhileN_cons_of_pos _ _ _ hr', ha]
               simp
-            · conv_rhs => rw [← Nat.succ_pred_eq_of_pos hr']
-              simp
-          · rcases hrec with ⟨rfl,rfl⟩
-            rw [ite_prop_iff_or]; left
-            rw [not_and_or] at hrs; rcases hrs with (hrs|hrs)
-            · constructor
-              · refine le_trans (Nat.mul_le_mul_right _ ?_) hrsg
-                simp_all [List.takeWhileN_cons_of_pos]
-              · simp only [hrs]
-                simp only [List.all_eq_true, decide_eq_true_eq, false_and, ge_iff_le,
-                  List.tail_cons, Sum.inl.injEq, Prod.mk.injEq, and_false, and_true, ite_false]
-                conv_rhs => rw [List.dropWhileN_cons_of_pos _ _ _ hr', ha]
-                simp
-            · constructor
-              · refine le_trans (Nat.mul_le_mul_right _ ?_) hrsg
-                simp_all [List.takeWhileN_cons_of_pos]
-              · rw [ite_prop_iff_or]; right; constructor
-                · rw [not_and_or]; right
-                  contrapose! hrs
-                  rw [List.take_pred_tail hr']
-                  exact List.all_tail hrs
-                · simp_all [List.dropWhileN_cons_of_pos]
-        -- Case: recursive call panics
-        · rw [List.length_pos] at hs'
-          simp only [List.tail_cons, ge_iff_le, List.length_takeWhileN, tsub_le_iff_right, add_mul,
-            one_mul, List.all_eq_true, decide_eq_true_eq, List.append_assoc, List.singleton_append,
-            and_false, ite_self, Sum.isRight_inr, prop_if_false_true, not_le] at hrec
-          simp only [List.length_takeWhileN, ge_iff_le, add_mul, one_mul, List.length_cons,
-            List.all_eq_true, decide_eq_true_eq, and_false, ite_self, Sum.isRight_inr,
-            prop_if_false_true, not_le, gt_iff_lt]
-          rw [List.takeWhile_cons_of_pos]
-          · simp only [List.length_cons, ge_iff_le, ← tsub_lt_iff_right hle]
-            rw [← Nat.succ_pred_eq_of_pos hr', Nat.succ_min_succ, Nat.succ_mul]
-            exact hrec
-          · exact ha
+          · constructor
+            · refine le_trans (Nat.mul_le_mul_right _ ?_) hrsg
+              simp_all [List.takeWhileN_cons_of_pos]
+            · rw [ite_prop_iff_or]; right; constructor
+              · rw [not_and_or]; right
+                contrapose! hrs
+                rw [List.take_pred_tail hr']
+                exact List.all_tail hrs
+              · simp_all [List.dropWhileN_cons_of_pos]
+        · rw [ite_prop_iff_or]
+          right
+          refine ⟨?_, hrec⟩
+          simp_all [List.takeWhile_cons_of_pos, add_mul]
+          rwa [← Nat.sub_one_add_one_eq_of_pos hr', Nat.add_min_add_right, add_mul, one_mul]
       -- Case: recursive call fails due to `s = []` or `s` containing overflows
       · rw [Option.inr_eq_toSum_iff, Option.map_eq_none', Option.filter_eq_none_iff] at h
         rcases h with (h|⟨a,h,h'⟩)
@@ -621,7 +609,10 @@ aegis_prove "core::array::deserialize_array_helper<core::integer::u64, core::ser
       subst h
       simp [hle]
   -- Case: Not enough gas for one run
-  · aesop (add simp [Nat.lt_add_left])
+  · simp only [List.length_takeWhileN, add_mul, one_mul, List.all_eq_true, decide_eq_true_eq,
+      Int.ofNat_eq_coe, Nat.cast_ofNat, Int.cast_ofNat, List.nil_append, and_false, ite_self,
+      Sum.isRight_inr, if_false_left, not_le, and_true]
+    apply Nat.lt_add_left _ h
 
 aegis_spec "core::array::ArraySerde<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>::deserialize" :=
   fun m _ gas a _ gas' ρ =>

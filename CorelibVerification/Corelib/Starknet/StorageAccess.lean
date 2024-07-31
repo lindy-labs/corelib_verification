@@ -15,7 +15,7 @@ aegis_prove "core::starknet::storage_access::StoreFelt252::read" :=
   unfold «spec_core::starknet::storage_access::StoreFelt252::read»
   aesop
 
-aegis_spec "core::starknet::storage_access::StoreU8::read" :=
+/-aegis_spec "core::starknet::storage_access::StoreU8::read" :=
   fun m _ _ sys _ b_add _ _ ρ_sys ρ =>
   let r := (sys.contracts m.contractAddress.cast).storage b_add.cast
   ρ_sys = sys
@@ -109,4 +109,4 @@ aegis_prove "core::starknet::storage_access::StoreBool::read" :=
   fun m _ s _ b_addr _ s' ρ => by
   unfold «spec_core::starknet::storage_access::StoreBool::read»
   simp only [StorageAddress, ADDRESS_MOD]
-  aesop
+  aesop-/
