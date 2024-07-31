@@ -522,8 +522,6 @@ aegis_spec "core::integer::U32Add::add" :=
   fun _ _ a b _ ρ =>
   (a.val + b.val < U32_MOD ∧ ρ = .inl (a + b)) ∨ (U32_MOD ≤ a.val + b.val ∧ ρ.isRight)
 
-#check Option.get!_some
-
 aegis_prove "core::integer::U32Add::add" :=
   fun _ _ a b _ ρ => by
   unfold «spec_core::integer::U32Add::add»
@@ -1205,7 +1203,8 @@ aegis_prove "core::traits::TIntoT<core::integer::u128>::into" :=
 
 aegis_spec "core::integer::by_div_rem::RemImpl::<core::integer::u8, core::integer::U8DivRem, core::integer::U8TryIntoNonZero, core::integer::u8Drop>::rem" :=
   fun _ _ a b _ ρ =>
-  (b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)) ∨ (b = 0 ∧ ρ.isRight)
+  b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)
+  ∨ b = 0 ∧ ρ.isRight
 
 aegis_prove "core::integer::by_div_rem::RemImpl::<core::integer::u8, core::integer::U8DivRem, core::integer::U8TryIntoNonZero, core::integer::u8Drop>::rem" :=
   fun _ _ a b _ ρ => by
@@ -1214,7 +1213,8 @@ aegis_prove "core::integer::by_div_rem::RemImpl::<core::integer::u8, core::integ
 
 aegis_spec "core::integer::by_div_rem::RemImpl::<core::integer::u16, core::integer::U16DivRem, core::integer::U16TryIntoNonZero, core::integer::u16Drop>::rem" :=
   fun _ _ a b _ ρ =>
-  (b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)) ∨ (b = 0 ∧ ρ.isRight)
+  b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)
+  ∨ b = 0 ∧ ρ.isRight
 
 aegis_prove "core::integer::by_div_rem::RemImpl::<core::integer::u16, core::integer::U16DivRem, core::integer::U16TryIntoNonZero, core::integer::u16Drop>::rem" :=
   fun _ _ a b _ ρ => by
@@ -1223,7 +1223,8 @@ aegis_prove "core::integer::by_div_rem::RemImpl::<core::integer::u16, core::inte
 
 aegis_spec "core::integer::by_div_rem::RemImpl::<core::integer::u32, core::integer::U32DivRem, core::integer::U32TryIntoNonZero, core::integer::u32Drop>::rem" :=
   fun _ _ a b _ ρ =>
-  (b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)) ∨ (b = 0 ∧ ρ.isRight)
+  b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)
+  ∨ b = 0 ∧ ρ.isRight
 
 aegis_prove "core::integer::by_div_rem::RemImpl::<core::integer::u32, core::integer::U32DivRem, core::integer::U32TryIntoNonZero, core::integer::u32Drop>::rem" :=
   fun _ _ a b _ ρ => by
@@ -1232,7 +1233,8 @@ aegis_prove "core::integer::by_div_rem::RemImpl::<core::integer::u32, core::inte
 
 aegis_spec "core::integer::by_div_rem::RemImpl::<core::integer::u64, core::integer::U64DivRem, core::integer::U64TryIntoNonZero, core::integer::u64Drop>::rem" :=
   fun _ _ a b _ ρ =>
-  (b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)) ∨ (b = 0 ∧ ρ.isRight)
+  b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)
+  ∨ b = 0 ∧ ρ.isRight
 
 aegis_prove "core::integer::by_div_rem::RemImpl::<core::integer::u64, core::integer::U64DivRem, core::integer::U64TryIntoNonZero, core::integer::u64Drop>::rem" :=
   fun _ _ a b _ ρ => by
@@ -1241,9 +1243,65 @@ aegis_prove "core::integer::by_div_rem::RemImpl::<core::integer::u64, core::inte
 
 aegis_spec "core::integer::by_div_rem::RemImpl::<core::integer::u128, core::integer::U128DivRem, core::integer::U128TryIntoNonZero, core::integer::u128Drop>::rem" :=
   fun _ _ a b _ ρ =>
-  (b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)) ∨ (b = 0 ∧ ρ.isRight)
+  b ≠ 0 ∧ ρ = .inl (ZMod.nmod a b)
+  ∨ b = 0 ∧ ρ.isRight
 
 aegis_prove "core::integer::by_div_rem::RemImpl::<core::integer::u128, core::integer::U128DivRem, core::integer::U128TryIntoNonZero, core::integer::u128Drop>::rem" :=
   fun _ _ a b _ ρ => by
   unfold «spec_core::integer::by_div_rem::RemImpl::<core::integer::u128, core::integer::U128DivRem, core::integer::U128TryIntoNonZero, core::integer::u128Drop>::rem»
   aesop
+
+aegis_spec "core::integer::U128IntoFelt252::into" :=
+  fun _ a ρ =>
+  ρ = a.cast
+
+aegis_prove "core::integer::U128IntoFelt252::into" :=
+  fun _ a ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::integer::Felt252TryIntoU128::try_into" :=
+  fun _ _ a _ ρ =>
+  a.val < U128_MOD ∧ ρ = .inl a.cast
+  ∨ U128_MOD ≤ a.val ∧ ρ = .inr ()
+
+aegis_prove "core::integer::Felt252TryIntoU128::try_into" :=
+  fun _ _ a _ ρ => by
+  unfold «spec_core::integer::Felt252TryIntoU128::try_into»
+  aesop
+
+aegis_spec "core::integer::U64IntoFelt252::into" :=
+  fun _ a ρ =>
+  ρ = a.cast
+
+aegis_prove "core::integer::U64IntoFelt252::into" :=
+  fun _ a ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::integer::U32IntoFelt252::into" :=
+  fun _ a ρ =>
+  ρ = a.cast
+
+aegis_prove "core::integer::U32IntoFelt252::into" :=
+  fun _ a ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::integer::U8IntoFelt252::into" :=
+  fun _ a ρ =>
+  ρ = a.cast
+
+aegis_prove "core::integer::U8IntoFelt252::into" :=
+  fun _ a ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::array::ArrayToSpan<core::integer::u128>::span" :=
+  fun _ a ρ =>
+  ρ = a
+
+aegis_prove "core::array::ArrayToSpan<core::integer::u128>::span" :=
+  fun _ a ρ => by
+  rintro rfl
+  rfl

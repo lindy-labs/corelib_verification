@@ -49,7 +49,7 @@ aegis_prove "core::starknet::info::get_caller_address" :=
   · simp only [Sum.isRight_inl, or_false] at h
     rcases h with ⟨rei,_,_,h₁,h₂,-,-⟩
     cases h₁
-    cases h'.trans h₂
+    cases h'.symm.trans h₂
     exact ⟨rfl, .inl rfl⟩
   · exact ⟨rfl, .inr rfl⟩
 
@@ -67,7 +67,7 @@ aegis_prove "core::starknet::info::get_block_info" :=
   rintro ⟨_,_,_,_,_,_,_,_,_,_,rfl,(⟨_,_,_,rfl,h₃,hrbi,-⟩|h₁),h₂⟩
   · simp only [Sum.inl.injEq, false_and, or_false] at h₂
     rcases h₂ with ⟨rfl,h₂,rfl,rfl,rfl⟩
-    cases h₂.trans h₃
+    cases h₂.symm.trans h₃
     exact ⟨rfl, .inl ⟨_,hrbi,rfl⟩⟩
   · rcases h₂ with (⟨rfl,-⟩|⟨rfl,rfl,rfl⟩)
     · simp at h₁
@@ -83,7 +83,7 @@ aegis_prove "core::starknet::info::get_contract_address" :=
   rintro ⟨_,_,_,_,_,_,_,_,_,_,rfl,(⟨_,_,_,rfl,h₃,_,_⟩|h₁),h₂⟩
   · simp only [Sum.inl.injEq, false_and, or_false] at h₂
     rcases h₂ with ⟨rfl,h₂,rfl,rfl,rfl⟩
-    cases h₂.trans h₃
+    cases h₂.symm.trans h₃
     exact ⟨rfl, .inl rfl⟩
   · rcases h₂ with (⟨rfl,-⟩|⟨rfl,rfl,rfl⟩)
     · simp at h₁
@@ -99,7 +99,7 @@ aegis_prove "core::starknet::info::get_block_timestamp" :=
   rintro ⟨_,_,_,_,_,_,_,_,rfl,(⟨rbi,h₁,rfl⟩|h₁),h₂⟩
   · simp only [Sum.inl.injEq, false_and, or_false] at h₂
     rcases h₂ with ⟨rfl,h₂,rfl,rfl,rfl⟩
-    cases h₂.trans h₁
+    cases h₂.symm.trans h₁
     exact ⟨rfl, .inl rfl⟩
   · rcases h₂ with (⟨rfl,-⟩|⟨rfl,rfl,rfl⟩)
     · simp at h₁

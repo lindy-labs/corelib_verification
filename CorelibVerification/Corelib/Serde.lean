@@ -9,11 +9,11 @@ import Aegis.Macros
 open Sierra
 
 aegis_spec "core::Felt252Serde::serialize" :=
-  fun _ a b ρ _ =>
+  fun _ a b ρ =>
   ρ = b ++ [a]
 
 aegis_prove "core::Felt252Serde::serialize" :=
-  fun _ a b ρ _ => by
+  fun _ a b ρ => by
   unfold «spec_core::Felt252Serde::serialize»
   intro
   simp_all only [and_true]
@@ -28,11 +28,11 @@ aegis_prove "core::Felt252Serde::deserialize" :=
   aesop (add simp [List.head!_eq_head?, List.head?_eq_head])
 
 aegis_spec "core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>::serialize" :=
-  fun _ a b ρ _ =>
+  fun _ a b ρ =>
   ρ = b ++ [a.cast]
 
 aegis_prove "core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>::serialize" :=
-  fun _ a b ρ _ => by
+  fun _ a b ρ => by
   unfold «spec_core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>::serialize»
   intro
   simp_all only [and_true]
@@ -47,11 +47,11 @@ aegis_prove "core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, c
   aesop (add simp [List.head!_eq_head?, List.head?_eq_head, Option.iget_some])
 
 aegis_spec "core::serde::into_felt252_based::SerdeImpl::<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>::serialize" :=
-  fun _ a b ρ _ =>
+  fun _ a b ρ =>
   ρ = b ++ [a.cast]
 
 aegis_prove "core::serde::into_felt252_based::SerdeImpl::<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>::serialize" :=
-  fun _ a b ρ _ => by
+  fun _ a b ρ => by
   unfold «spec_core::serde::into_felt252_based::SerdeImpl::<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>::serialize»
   aesop
 
@@ -65,11 +65,11 @@ aegis_prove "core::serde::into_felt252_based::SerdeImpl::<core::integer::u64, co
   aesop (add simp [List.head!_eq_head?, List.head?_eq_head, Option.iget_some])
 
 aegis_spec "core::serde::into_felt252_based::SerdeImpl::<core::integer::u32, core::integer::u32Copy, core::integer::U32IntoFelt252, core::integer::Felt252TryIntoU32>::serialize" :=
-  fun _ a b ρ _ =>
+  fun _ a b ρ =>
   ρ = b ++ [a.cast]
 
 aegis_prove "core::serde::into_felt252_based::SerdeImpl::<core::integer::u32, core::integer::u32Copy, core::integer::U32IntoFelt252, core::integer::Felt252TryIntoU32>::serialize" :=
-  fun _ a b ρ _ => by
+  fun _ a b ρ => by
   unfold «spec_core::serde::into_felt252_based::SerdeImpl::<core::integer::u32, core::integer::u32Copy, core::integer::U32IntoFelt252, core::integer::Felt252TryIntoU32>::serialize»
   aesop
 
@@ -83,25 +83,25 @@ aegis_prove "core::serde::into_felt252_based::SerdeImpl::<core::integer::u32, co
   aesop (add simp [List.head!_eq_head?, List.head?_eq_head, Option.iget_some])
 
 aegis_spec "core::serde::into_felt252_based::SerdeImpl::<core::integer::u8, core::integer::u8Copy, core::integer::U8IntoFelt252, core::integer::Felt252TryIntoU8>::serialize" :=
-  fun _ a b ρ _ =>
+  fun _ a b ρ =>
   ρ = b ++ [a.cast]
 
 aegis_prove "core::serde::into_felt252_based::SerdeImpl::<core::integer::u8, core::integer::u8Copy, core::integer::U8IntoFelt252, core::integer::Felt252TryIntoU8>::serialize" :=
-  fun _ a b ρ _ => by
+  fun _ a b ρ => by
   unfold «spec_core::serde::into_felt252_based::SerdeImpl::<core::integer::u8, core::integer::u8Copy, core::integer::U8IntoFelt252, core::integer::Felt252TryIntoU8>::serialize»
   aesop
 
-aegis_spec "core::serde::into_felt252_based::SerdeImpl::<core::integer::u8, core::integer::u8Copy, core::integer::U8IntoFelt252, core::integer::Felt252TryIntoU8>::deserialize" :=
+/-aegis_spec "core::serde::into_felt252_based::SerdeImpl::<core::integer::u8, core::integer::u8Copy, core::integer::U8IntoFelt252, core::integer::Felt252TryIntoU8>::deserialize" :=
   fun _ _ a _ ρ₁ ρ₂ =>
   ρ₁ = a.tail ∧ ρ₂ = ((a.head?.filter (·.val < U8_MOD)).map ZMod.cast).toSum
 
 aegis_prove "core::serde::into_felt252_based::SerdeImpl::<core::integer::u8, core::integer::u8Copy, core::integer::U8IntoFelt252, core::integer::Felt252TryIntoU8>::deserialize" :=
   fun _ _ a _ ρ₁ ρ₂ => by
   unfold «spec_core::serde::into_felt252_based::SerdeImpl::<core::integer::u8, core::integer::u8Copy, core::integer::U8IntoFelt252, core::integer::Felt252TryIntoU8>::deserialize»
-  aesop (add simp [List.head!_eq_head?, List.head?_eq_head, Option.iget_some])
+  aesop (add simp [List.head!_eq_head?, List.head?_eq_head, Option.iget_some])-/
 
 aegis_spec "core::BoolSerde::serialize" :=
-  fun _ a b ρ _ =>
+  fun _ a b ρ =>
   ρ = b ++ [if (SierraBool.toBool a) then 1 else 0]
 
 aegis_prove "core::BoolSerde::serialize" :=
@@ -119,11 +119,11 @@ aegis_prove "core::BoolSerde::deserialize" :=
   aesop (add simp [List.head!_eq_head?, List.head?_eq_head, Option.iget_some])
 
 aegis_spec "core::integer::u256Serde::serialize" :=
-  fun _ a b ρ _ =>
+  fun _ a b ρ =>
   ρ = b ++ [a.1.cast, a.2.cast]
 
 aegis_prove "core::integer::u256Serde::serialize" :=
-  fun _ a b ρ _ => by
+  fun _ a b ρ => by
   unfold «spec_core::integer::u256Serde::serialize»
   rintro ⟨_,_,_,_,rfl,h,rfl⟩
   injection h with h₁ h₂; subst h₁; subst h₂
@@ -321,9 +321,10 @@ aegis_prove "core::array::deserialize_array_helper::<core::integer::u128, core::
   fun m _ gas s curr r _ gas' ρ => by
   unfold «spec_core::array::deserialize_array_helper::<core::integer::u128, core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>»
   generalize Metadata.costs m id!"core::array::deserialize_array_helper::<core::integer::u128, core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>" = c
-  rintro ⟨hd,_,_,_,_,_,_,_,(⟨hle,h⟩|⟨h,rfl⟩)⟩
+  rintro ⟨hd,_,_,_,_,_,_,_,(⟨hle,h,rfl,rfl⟩|⟨h,rfl,rfl⟩)⟩
   -- Case: Enough gas for one run
-  · rcases h with (⟨rfl,rfl,rfl⟩|⟨hne,h⟩)
+  · dsimp only at h
+    rcases h with (⟨rfl,rfl,rfl⟩|⟨hne,h⟩)
     -- Case: `r = 0`
     · simp [hle]
     -- Case: `r ≠ 0`
