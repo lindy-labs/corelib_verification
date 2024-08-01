@@ -9,6 +9,7 @@ import CorelibVerification.Corelib.Starknet.ContractAddress
 import CorelibVerification.Corelib.Starknet.Info
 import CorelibVerification.Corelib.Starknet.StorageAccess
 import CorelibVerification.Corelib.Starknet
+import CorelibVerification.Corelib.Metaprogramming
 
 /- Trivial spec for the dummy function -/
 aegis_spec "corelib_verification::main" :=

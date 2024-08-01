@@ -43,9 +43,9 @@ aegis_spec "core::array::ArrayImpl::<core::integer::u64>::append" :=
   fun _ a b ρ =>
   ρ = a ++ [b]
 
-aegis_prove "core::array::ArrayImpl<core::felt252>::append" :=
+aegis_prove "core::array::ArrayImpl::<core::integer::u64>::append" :=
   fun _ a b ρ _ => by
-  unfold «spec_core::array::ArrayImpl<core::felt252>::append»
+  unfold «spec_core::array::ArrayImpl::<core::integer::u64>::append»
   aesop
 
 aegis_spec "core::array::SpanImpl<core::integer::u64>::pop_front" :=
