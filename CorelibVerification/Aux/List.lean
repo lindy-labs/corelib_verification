@@ -79,14 +79,6 @@ theorem length_takeWhileN (as : List α) :
       · simp only [length_cons, h, ge_iff_le, ih, Nat.succ_min_succ]
       · simp [h]
 
-theorem head_take {as : List α} (has : as ≠ []) {n : ℕ} (hn : 0 < n) :
-    (as.take n).head (by aesop) = as.head has := by
-  induction' as with a as ih
-  · contradiction
-  · rcases n
-    · contradiction
-    · simp
-
 theorem take_pred_tail {as : List α} (h : 0 < n) : as.tail.take (n - 1) = (as.take n).tail := by
   induction' as with a as
   · simp
@@ -98,6 +90,3 @@ theorem all_tail {as : List α} (h : as.all p) : as.tail.all p := by
   simp only [all_eq_true] at *
   intro x hx
   apply h _ (mem_of_mem_tail hx)
-
-theorem head?_eq_none_iff (as : List α) : as.head? = .none ↔ as = [] := by
-  cases as <;> simp
