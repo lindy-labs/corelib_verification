@@ -32,7 +32,7 @@ theorem toNat_lt : p.toNat < U256_MOD :=
 
 theorem _root_.BitVec.toNat_append' (x : BitVec m) (y : BitVec n) :
     (x ++ y).toNat = 2 ^ n * x.toNat + y.toNat := by
-  rw [BitVec.toNat_append, Nat.shiftLeft_eq, Nat.mul_add_lt_is_or y.isLt]
+  rw [BitVec.toNat_append, Nat.shiftLeft_eq, Nat.two_pow_add_eq_or_of_lt y.isLt]
   ac_rfl
 
 theorem pair_toNat {x y : UInt128} : UInt256.toNat (x, y) = x.toNat + y.toNat * U128_MOD := by
@@ -101,13 +101,13 @@ protected theorem add_def :
   rfl
 
 @[simp]
-private lemma add_no_overflow (p q : UInt256) (h₁ : ¬ BitVec.uaddOverflow p.1 q.1) :
+lemma add_no_overflow (p q : UInt256) (h₁ : ¬ BitVec.uaddOverflow p.1 q.1) :
     p + q = (p.1 + q.1, p.2 + q.2) := by
   simp only [UInt256.add_def, UInt256.ofBitVec, Nat.reduceAdd]
   apply Prod.ext <;> bv_decide
 
 @[simp]
-private lemma add_overflow (p q : UInt256) (h₁ : BitVec.uaddOverflow p.1 q.1) :
+lemma add_overflow (p q : UInt256) (h₁ : BitVec.uaddOverflow p.1 q.1) :
     p + q = (p.1 + q.1, p.2 + q.2 + 1#128) := by
   simp only [UInt256.add_def, UInt256.ofBitVec, Nat.reduceAdd]
   apply Prod.ext <;> bv_decide
@@ -119,31 +119,17 @@ protected theorem sub_def :
     p - q = ofBitVec ((p.2 ++ p.1) - (q.2 ++ q.1)) :=
   rfl
 
-/-
-theorem val_lt_val_iff : p.val < q.val ↔
-    (p.2.val < q.2.val ∨ p.1.val < q.1.val ∧ p.2.val = q.2.val) := by
-  constructor
-  · rw [← not_imp_not, not_lt, not_or, not_and_or, not_lt, not_lt]
-    rintro ⟨h,(h'|h')⟩ <;> simp only [val]
-    · apply le_trans (Nat.add_le_add_right (Nat.mul_le_mul_left _ h) _)
-      apply Nat.add_le_add_left h'
-    · replace h := Nat.lt_of_le_of_ne h (Ne.symm h')
-      rw [← Nat.add_one_le_iff] at h
-      apply le_trans _ (Nat.add_le_add_right (Nat.mul_le_mul_left _ h) _)
-      rw [mul_add, mul_one, add_assoc]
-      apply Nat.add_le_add_left
-      apply Nat.le_add_of_le_left
-      exact le_of_lt q.1.val_lt
-  · rintro (h|⟨h,h'⟩) <;> simp only [val]
-    · rw [← Nat.add_one_le_iff] at h ⊢
-      apply le_trans _ (Nat.add_le_add_right (Nat.mul_le_mul_left _ h) _)
-      rw [mul_add, mul_one, add_assoc, add_assoc]
-      apply Nat.add_le_add_left
-      apply Nat.le_add_of_le_left
-      rw [Nat.add_one_le_iff]
-      exact p.1.val_lt
-    · rw [h']; apply Nat.add_lt_add_left h
--/
+@[simp]
+lemma sub_no_overflow (p q : UInt256) (h₁ : ¬ BitVec.usubOverflow p.1 q.1) :
+    p - q = (p.1 - q.1, p.2 - q.2) := by
+  simp only [UInt256.sub_def, UInt256.ofBitVec]
+  apply Prod.ext <;> bv_decide
+
+@[simp]
+lemma sub_overflow (p q : UInt256) (h₁ : BitVec.usubOverflow p.1 q.1) :
+    p - q = (p.1 - q.1, p.2 - q.2 - 1#128) := by
+  simp only [UInt256.sub_def, UInt256.ofBitVec, Nat.reduceSub]
+  apply Prod.ext <;> bv_decide
 
 /-- Multiplication on `UInt256` as implemented by `u256_overflow_mul`. -/
 protected def mul : UInt256  := ofBitVec ((p.2 ++ p.1) * (q.2 ++ q.1))

@@ -46,11 +46,12 @@ aegis_prove "core::starknet::info::get_caller_address" :=
   fun m _ s _ s' ρ => by
   unfold «spec_core::starknet::info::get_caller_address»
   rintro ⟨_,_,_,_,_,_,_,_,_,_,rfl,h,(⟨rfl,h',rfl,rfl,rfl⟩|⟨rfl,rfl,rfl⟩)⟩
-  · simp only [Sum.isRight_inl, or_false] at h
-    rcases h with ⟨rei,_,_,h₁,h₂,-,-⟩
-    cases h₁
-    cases h'.symm.trans h₂
-    exact ⟨rfl, .inl rfl⟩
+  · simp only [Nat.succ_eq_add_one, Nat.reduceAdd, SierraType.Box.sizeOf_spec, Sum.inl.injEq,
+      SierraType.ContractAddress.sizeOf_spec, SierraType.U64.sizeOf_spec,
+      SierraType.Felt252.sizeOf_spec, SierraType.U128.sizeOf_spec, SierraType.U32.sizeOf_spec,
+      exists_and_left, exists_eq_left', Sum.isRight_inl, Bool.false_eq_true, or_false] at h
+    obtain ⟨rei,_,h⟩ := h
+    sorry
   · exact ⟨rfl, .inr rfl⟩
 
 aegis_spec "core::starknet::info::get_block_info" :=
