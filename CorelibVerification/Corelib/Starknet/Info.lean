@@ -6,7 +6,7 @@ namespace Sierra
 aegis_spec "core::starknet::info::get_execution_info" :=
   fun m _ s _ s' ρ =>
   s = s' ∧
-  ((∃ rei rbi rti, ρ = .inl rei ∧
+  ((∃ (rei rbi rti : ℕ), ρ = .inl rei ∧
       m.boxHeap .V2ExecutionInfo rei = .some ⟨rbi, rti,
       m.callerAddress, m.contractAddress, m.entryPointSelector⟩
       ∧ m.boxHeap .BlockInfo rbi = .some ⟨m.blockNumber, m.blockTimestamp, m.sequencerAddress⟩
@@ -17,7 +17,7 @@ aegis_spec "core::starknet::info::get_execution_info" :=
 
 aegis_prove "core::starknet::info::get_execution_info" :=
   fun m _ s _ s' ρ => by
-  unfold «spec_core::starknet::info::get_execution_info»
+  unfold_spec "core::starknet::info::get_execution_info"
   rintro ⟨_,_,ρ',h⟩
   rcases h with (⟨h₁,h,rfl,rfl⟩|⟨h,rfl,rfl⟩)
   · rcases h with (h|h)
@@ -44,15 +44,16 @@ aegis_spec "core::starknet::info::get_caller_address" :=
 
 aegis_prove "core::starknet::info::get_caller_address" :=
   fun m _ s _ s' ρ => by
-  unfold «spec_core::starknet::info::get_caller_address»
-  rintro ⟨_,_,_,_,_,_,_,_,_,_,rfl,h,(⟨rfl,h',rfl,rfl,rfl⟩|⟨rfl,rfl,rfl⟩)⟩
-  · simp only [Nat.succ_eq_add_one, Nat.reduceAdd, SierraType.Box.sizeOf_spec, Sum.inl.injEq,
-      SierraType.ContractAddress.sizeOf_spec, SierraType.U64.sizeOf_spec,
-      SierraType.Felt252.sizeOf_spec, SierraType.U128.sizeOf_spec, SierraType.U32.sizeOf_spec,
-      exists_and_left, exists_eq_left', Sum.isRight_inl, Bool.false_eq_true, or_false] at h
-    obtain ⟨rei,_,h⟩ := h
-    sorry
-  · exact ⟨rfl, .inr rfl⟩
+  unfold_spec "core::starknet::info::get_caller_address"
+  rintro ⟨_,_,_,_,_,_,_,_,_,_,rfl,(h|h),h'⟩
+  · rcases h with ⟨rei,rbi,rti,rfl,h₁,h₂,h₃⟩
+    simp only [Sum.inl.injEq, reduceCtorEq, false_and, or_false] at h'
+    rcases h' with ⟨rfl,h',rfl,rfl,rfl⟩
+    refine ⟨rfl, .inl ?_⟩
+    rw [h₁] at h'
+    cases h'
+    rfl
+  · aesop
 
 aegis_spec "core::starknet::info::get_block_info" :=
   fun m _ s _ s' ρ =>
@@ -64,15 +65,17 @@ aegis_spec "core::starknet::info::get_block_info" :=
 
 aegis_prove "core::starknet::info::get_block_info" :=
   fun m _ s _ s' ρ => by
-  unfold «spec_core::starknet::info::get_block_info»
-  rintro ⟨_,_,_,_,_,_,_,_,_,_,rfl,(⟨_,_,_,rfl,h₃,hrbi,-⟩|h₁),h₂⟩
-  · simp only [Sum.inl.injEq, false_and, or_false] at h₂
-    rcases h₂ with ⟨rfl,h₂,rfl,rfl,rfl⟩
-    cases h₂.symm.trans h₃
-    exact ⟨rfl, .inl ⟨_,hrbi,rfl⟩⟩
-  · rcases h₂ with (⟨rfl,-⟩|⟨rfl,rfl,rfl⟩)
-    · simp at h₁
-    · exact ⟨rfl, .inr rfl⟩
+  unfold_spec "core::starknet::info::get_block_info"
+  rintro ⟨_,_,_,_,_,_,_,_,_,_,rfl,(h|h),h'⟩
+  · rcases h with ⟨rei,rbi,rti,rfl,h₁,h₂,h₃⟩
+    simp only [Sum.inl.injEq, reduceCtorEq, false_and, or_false] at h'
+    rcases h' with ⟨rfl,h',rfl,rfl,rfl⟩
+    refine ⟨rfl, .inl ?_⟩
+    use rbi
+    rw [h₁] at h'
+    cases h'
+    exact ⟨h₂,rfl⟩
+  · aesop
 
 aegis_spec "core::starknet::info::get_contract_address" :=
   fun m _ s _ s' ρ =>
@@ -80,15 +83,14 @@ aegis_spec "core::starknet::info::get_contract_address" :=
 
 aegis_prove "core::starknet::info::get_contract_address" :=
   fun m _ s _ s' ρ => by
-  unfold «spec_core::starknet::info::get_contract_address»
+  unfold_spec "core::starknet::info::get_contract_address"
   rintro ⟨_,_,_,_,_,_,_,_,_,_,rfl,(⟨_,_,_,rfl,h₃,_,_⟩|h₁),h₂⟩
-  · simp only [Sum.inl.injEq, false_and, or_false] at h₂
+  · simp only [Sum.inl.injEq, reduceCtorEq, false_and, or_false] at h₂
     rcases h₂ with ⟨rfl,h₂,rfl,rfl,rfl⟩
-    cases h₂.symm.trans h₃
+    rw [h₂] at h₃
+    cases h₃
     exact ⟨rfl, .inl rfl⟩
-  · rcases h₂ with (⟨rfl,-⟩|⟨rfl,rfl,rfl⟩)
-    · simp at h₁
-    · exact ⟨rfl, .inr rfl⟩
+  · aesop
 
 aegis_spec "core::starknet::info::get_block_timestamp" :=
   fun m _ s _ s' ρ =>
@@ -98,10 +100,8 @@ aegis_prove "core::starknet::info::get_block_timestamp" :=
   fun m _ s _ s' ρ => by
   unfold «spec_core::starknet::info::get_block_timestamp»
   rintro ⟨_,_,_,_,_,_,_,_,rfl,(⟨rbi,h₁,rfl⟩|h₁),h₂⟩
-  · simp only [Sum.inl.injEq, false_and, or_false] at h₂
+  · simp only [Sum.inl.injEq, reduceCtorEq, false_and, or_false] at h₂
     rcases h₂ with ⟨rfl,h₂,rfl,rfl,rfl⟩
     cases h₂.symm.trans h₁
     exact ⟨rfl, .inl rfl⟩
-  · rcases h₂ with (⟨rfl,-⟩|⟨rfl,rfl,rfl⟩)
-    · simp at h₁
-    · exact ⟨rfl, .inr rfl⟩
+  · aesop
