@@ -885,7 +885,6 @@ aegis_spec "core::integer::u256_overflow_sub" :=
   fun _ _ (a b : UInt256) _ ρ =>
   ρ = (a - b, Bool.toSierraBool (a.toNat < b.toNat))
 
-set_option trace.aesop.debug true in
 aegis_prove "core::integer::u256_overflow_sub" :=
   fun _ _ (a b : UInt256) _ ρ => by
   unfold_spec  "core::integer::u256_overflow_sub"
@@ -1281,8 +1280,8 @@ aegis_prove "core::integer::by_div_rem::RemImpl::<core::integer::u128, core::int
   aesop
 
 aegis_spec "core::integer::U128IntoFelt252::into" :=
-  fun _ a ρ =>
-  ρ = Fin.castLE (by simp) a.toFin
+  fun _ (a : UInt128) ρ =>
+  ρ = a.toFelt
 
 aegis_prove "core::integer::U128IntoFelt252::into" :=
   fun _ a ρ => by
@@ -1300,8 +1299,8 @@ aegis_prove "core::integer::Felt252TryIntoU128::try_into" :=
   aesop
 
 aegis_spec "core::integer::U64IntoFelt252::into" :=
-  fun _ a ρ =>
-  ρ = Fin.castLE (by simp) a.toFin
+  fun _ (a : Sierra.UInt64) ρ =>
+  ρ = a.toFelt
 
 aegis_prove "core::integer::U64IntoFelt252::into" :=
   fun _ a ρ => by
@@ -1309,8 +1308,8 @@ aegis_prove "core::integer::U64IntoFelt252::into" :=
   rfl
 
 aegis_spec "core::integer::U32IntoFelt252::into" :=
-  fun _ a ρ =>
-  ρ = Fin.castLE (by simp) a.toFin
+  fun _ (a : Sierra.UInt32) ρ =>
+  ρ = a.toFelt
 
 aegis_prove "core::integer::U32IntoFelt252::into" :=
   fun _ a ρ => by
@@ -1319,7 +1318,7 @@ aegis_prove "core::integer::U32IntoFelt252::into" :=
 
 aegis_spec "core::integer::U8IntoFelt252::into" :=
   fun _ a ρ =>
-  ρ = Fin.castLE (by simp) a.toFin
+  ρ = a.toFelt
 
 aegis_prove "core::integer::U8IntoFelt252::into" :=
   fun _ a ρ => by

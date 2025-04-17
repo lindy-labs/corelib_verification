@@ -160,3 +160,9 @@ theorem ZMod.castLE_eq_zero_iff_eq_zero {m n : ℕ} (a : ZMod m.succ) (h : m.suc
       rwa [← Fin.castLE_zero h, Fin.castLE_inj] at h'
     · rintro rfl
       simp
+
+@[simp]
+theorem ZMod.val_sub_one {m : ℕ} [NeZero m] [Fact (1 < m)] {a : ZMod m} (h : a ≠ 0) :
+    (a - 1).val = a.val - 1 := by
+  rw [val_sub (by rw [val_one]; refine Nat.one_le_iff_ne_zero.mpr ?_; exact (val_ne_zero a).mpr h)]
+  rw [val_one]

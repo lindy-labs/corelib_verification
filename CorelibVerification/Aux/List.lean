@@ -86,7 +86,20 @@ theorem take_pred_tail {as : List α} (h : 0 < n) : as.tail.take (n - 1) = (as.t
     · contradiction
     · simp
 
+@[simp]
+theorem head!_eq_head [Inhabited α] {as : List α} (h : ¬ as = []) : as.head! = as.head h := by
+  rw [List.head!_eq_head?, List.head?_eq_head]
+
 theorem all_tail {as : List α} (h : as.all p) : as.tail.all p := by
   simp only [all_eq_true] at *
   intro x hx
   apply h _ (mem_of_mem_tail hx)
+
+lemma length_pos_of_ne {as : List α} (h : as ≠ []) : 0 < as.length := by
+  rwa [List.length_pos_iff]
+
+-- This one is probably a bit problematic to be a general simp lemma, actually
+@[simp]
+lemma cons_map_tail_eq (f : α → β) {as : List α} (h : as ≠ []) :
+    f (as.head h) :: (as.map f).tail = as.map f := by
+  conv_rhs => rw [← List.head_cons_tail as h, List.map_cons, List.map_tail]

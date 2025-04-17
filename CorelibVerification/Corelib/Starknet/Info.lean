@@ -98,7 +98,7 @@ aegis_spec "core::starknet::info::get_block_timestamp" :=
 
 aegis_prove "core::starknet::info::get_block_timestamp" :=
   fun m _ s _ s' ρ => by
-  unfold «spec_core::starknet::info::get_block_timestamp»
+  unfold_spec "core::starknet::info::get_block_timestamp"
   rintro ⟨_,_,_,_,_,_,_,_,rfl,(⟨rbi,h₁,rfl⟩|h₁),h₂⟩
   · simp only [Sum.inl.injEq, reduceCtorEq, false_and, or_false] at h₂
     rcases h₂ with ⟨rfl,h₂,rfl,rfl,rfl⟩

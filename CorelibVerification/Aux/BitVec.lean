@@ -1,4 +1,5 @@
 import Mathlib.Data.BitVec
+import Aegis.Types
 
 namespace BitVec
 
@@ -33,3 +34,21 @@ theorem lt_of_not_usubOverflow {x y : BitVec w} (h : x.usubOverflow y) :
     x.toNat < y.toNat := by
   rw [BitVec.usubOverflow_iff] at h
   omega
+
+end BitVec
+
+namespace Sierra
+
+/- Conversions from uxxx to felt252 -/
+def UInt8.toFelt (x : UInt8) : F := x.toFin.castLE (m := PRIME) (by simp [PRIME])
+
+def UInt16.toFelt (x : UInt16) : F := x.toFin.castLE (m := PRIME) (by simp [PRIME])
+
+def UInt32.toFelt (x : UInt32) : F := x.toFin.castLE (m := PRIME) (by simp [PRIME])
+
+def UInt64.toFelt (x : UInt64) : F := x.toFin.castLE (m := PRIME) (by simp [PRIME])
+
+def UInt128.toFelt (x : UInt128) : F := x.toFin.castLE (m := PRIME) (by simp [PRIME])
+
+
+end Sierra
