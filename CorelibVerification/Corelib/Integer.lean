@@ -11,7 +11,7 @@ syntax "sierra_simp'" : tactic
 macro_rules
 | `(tactic|sierra_simp') =>
   `(tactic|
-    simp only [Prod.mk.inj_iff, and_assoc, Bool.coe_toSierraBool, Bool.toSierraBool_coe,
+    simp only [Prod.mk_inj, and_assoc, Bool.coe_toSierraBool, Bool.toSierraBool_coe,
       exists_and_left, exists_and_right, exists_eq_left, exists_eq_right, exists_eq_right',
       exists_eq_left', not, or, and,
       SierraBool_toBool_inl, SierraBool_toBool_inr, Bool.toSierraBool_true, Bool.toSierraBool_false,
@@ -961,7 +961,7 @@ aegis_spec "core::integer::u256_overflow_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) =>
   ρ = (a * b, Bool.toSierraBool (U256_MOD ≤ a.toNat * b.toNat))
 
--- TODO: Investigate why this has become longer after port to Cairo 2
+-- TODO: Come back to this when we have `BitVec.umulOverflow`.
 aegis_prove "core::integer::u256_overflow_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) => by
   rcases a with ⟨aₗ, aₕ⟩
@@ -975,8 +975,26 @@ aegis_prove "core::integer::u256_overflow_mul" :=
   cases h₄
   cases h₅
   rcases h with (⟨h₆,h⟩|⟨h₆,h⟩)
-  · simp at h
-    sorry
+  · rcases h with (h|h)
+    · simp [- Bool.toSierraBool_not] at h
+      rcases h with ⟨h,(h₁|h₁)⟩
+      · rcases h₁ with ⟨h₁,(h₂|h₂)⟩
+        · rcases h₂ with ⟨rfl,(h₂|h₂)⟩
+          · rw [← decide_not, Bool.toSierraBool_decide_inl', not_not] at h h₁
+            rcases h₂ with ⟨h₂,h₃⟩
+            cases h₃
+            congr 1
+            · rw [UInt256.mul_def, UInt256.ofBitVec]
+              dsimp
+              simp at h₆
+              congr 1
+              · bv_decide
+              · sorry
+            · sorry
+          · sorry
+        · sorry
+      · sorry
+    · sorry
   · rcases h with (⟨h₇,rfl⟩|h)
     · simp [UInt256.mul_def]
       sorry
@@ -1060,7 +1078,7 @@ aegis_spec "core::integer::by_div_rem::DivImpl::<core::integer::u256, core::inte
 
 aegis_prove "core::integer::by_div_rem::DivImpl::<core::integer::u256, core::integer::U256DivRem, core::integer::U256TryIntoNonZero, core::integer::u256Drop>::div" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ _) => by
-  unfold «spec_core::integer::by_div_rem::DivImpl::<core::integer::u256, core::integer::U256DivRem, core::integer::U256TryIntoNonZero, core::integer::u256Drop>::div»
+  unfold_spec "core::integer::by_div_rem::DivImpl::<core::integer::u256, core::integer::U256DivRem, core::integer::U256TryIntoNonZero, core::integer::u256Drop>::div"
   simp only [UInt256.toNat, UInt256.zero_def]
   rcases b with ⟨bₗ,bₕ⟩; dsimp only
   rintro ⟨_,_,_,_,_,_,(⟨h,rfl⟩|⟨rfl,rfl,h⟩),h'⟩
