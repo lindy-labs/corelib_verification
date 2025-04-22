@@ -151,3 +151,5 @@ protected def zero : UInt256 := ofBitVec 0
 instance : Zero UInt256 := ⟨UInt256.zero⟩
 
 protected theorem zero_def : (0 : UInt256) = ofBitVec 0 := rfl
+
+instance : Inhabited UInt256 := ⟨0⟩

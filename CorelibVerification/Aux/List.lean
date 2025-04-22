@@ -103,3 +103,15 @@ lemma length_pos_of_ne {as : List α} (h : as ≠ []) : 0 < as.length := by
 lemma cons_map_tail_eq (f : α → β) {as : List α} (h : as ≠ []) :
     f (as.head h) :: (as.map f).tail = as.map f := by
   conv_rhs => rw [← List.head_cons_tail as h, List.map_cons, List.map_tail]
+
+lemma ne_empty_of_head?_eq_some {as : List α} (h : as.head? = .some a) :
+    as ≠ [] := by
+  rcases as <;> simp at *
+
+lemma length_tail_takeWhile [Inhabited α] [DecidableEq α] (as : List α) (h : as ≠ [])
+    (h' : p (as.head h)) : as.takeWhile p = as.head h :: (as.tail.takeWhile p) := by
+  rcases as with ⟨⟩|⟨a,as⟩
+  · simp only [takeWhile_nil, tail_nil, ne_cons_self]
+    contradiction
+  · simp [takeWhile_cons]
+    exact h'

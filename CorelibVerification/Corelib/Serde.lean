@@ -4,6 +4,7 @@ import CorelibVerification.Aux.Bool
 import CorelibVerification.Corelib.Integer
 import CorelibVerification.Load
 import Mathlib.Data.Option.Basic
+--import Lean.Parser.Tactic.Save
 import Aegis.Macros
 
 open Sierra
@@ -224,8 +225,14 @@ set_option maxHeartbeats 1000000 in
 aegis_prove "core::array::deserialize_array_helper::<core::integer::u128, core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>" :=
   fun m _ gas s curr r _ gas' ρ => by
   unfold_spec "core::array::deserialize_array_helper::<core::integer::u128, core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>"
-  generalize Metadata.costs m id!"core::array::deserialize_array_helper::<core::integer::u128, core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>" = c
-  aesop (add simp [Option.iget_some], safe tactic (by simp [List.head?_eq_head (by assumption)]))
+  generalize m.costs id!"core::array::deserialize_array_helper::<core::integer::u128, core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>" = c
+  aesop (add simp [Option.iget_some, Option.inl_eq_toSum_iff, Option.inr_eq_toSum_iff, List.head?_eq_head,
+      List.length_tail_takeWhile, List.take_pred_tail, ZMod.val_pos_of_ne_zero],
+    --safe tactic (by simp [List.head?_eq_head (by assumption)] at *),
+    safe forward [List.ne_empty_of_head?_eq_some])
+    (config := { warnOnNonterminal := .false })
+  save
+  · sorry
 
   -- rintro ⟨hd,_,_,_,_,_,(⟨hle,h⟩|⟨h,rfl,rfl⟩)⟩
   -- -- Case: Enough gas for one run
