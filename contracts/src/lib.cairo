@@ -136,19 +136,19 @@ fn main(contract_address : ContractAddress,
     //core::integer::U128Add::add
     let _x = core::integer::U128Add::add(0, 0);
     //core::integer::u256_overflowing_add
-    let _x = core::integer::u256_overflowing_add(0, 0);
+    //let _x = core::integer::u256_overflowing_add(0, 0);
     //core::integer::u256_checked_add
     let _x = core::integer::u256_checked_add(0, 0);
     //core::integer::U256Add::add
     let _x = core::integer::U256Add::add(0, 0);
     //core::integer::u256_overflow_sub
-    let _x = core::integer::u256_overflow_sub(0, 0);
+    //let _x = core::integer::u256_overflow_sub(0, 0);
     //core::integer::u256_checked_sub
     let _x = core::integer::u256_checked_sub(0, 0);
     //core::integer::U256Sub::sub
     let _x = core::integer::U256Sub::sub(0, 0);
     //core::integer::u256_overflow_mul
-    let _x = core::integer::u256_overflow_mul(0, 0);
+    //let _x = core::integer::u256_overflow_mul(0, 0);
     //core::integer::u256_checked_mul
     let _x = core::integer::u256_checked_mul(0, 0);
     //core::integer::U256Mul::mul

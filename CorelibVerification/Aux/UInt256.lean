@@ -25,20 +25,58 @@ namespace UInt256
 
 variable (p q : UInt256)
 
-def val : ℕ := U128_MOD * p.2.val + p.1.val
+def toNat : ℕ := (p.2 ++ p.1).toNat
 
-theorem val_lt : p.val < U256_MOD := by
-  simp only [val]
-  apply lt_of_lt_of_le (add_lt_add_left (ZMod.val_lt _) _)
-  trans
-  · apply add_le_add_right
-    apply (mul_le_mul_left U128_MOD_pos.out).mpr
-    apply Nat.le_of_lt_succ
-    apply ZMod.val_lt
-  norm_num [U256_MOD, U128_MOD]
+theorem toNat_lt : p.toNat < U256_MOD :=
+  (p.2 ++ p.1).isLt
 
-theorem val_lt_U128_MOD_iff : p.val < U128_MOD ↔ p.2 = 0 := by
-  simp only [val]
+theorem _root_.BitVec.toNat_append' (x : BitVec m) (y : BitVec n) :
+    (x ++ y).toNat = 2 ^ n * x.toNat + y.toNat := by
+  rw [BitVec.toNat_append, Nat.shiftLeft_eq, Nat.two_pow_add_eq_or_of_lt y.isLt]
+  ac_rfl
+
+theorem pair_toNat {x y : UInt128} : UInt256.toNat (x, y) = x.toNat + y.toNat * U128_MOD := by
+  simp [toNat]
+  rw [BitVec.toNat_append', U128_MOD]
+  ac_rfl
+
+def ofBitVec (x : BitVec 256) : UInt256 :=
+  (x.extractLsb' 0 128, x.extractLsb' 128 128)
+
+@[simp]
+theorem append_ofBitVec : (ofBitVec x).2 ++ (ofBitVec x).1 = x := by
+  ext
+  rw [BitVec.getElem_append]
+  split_ifs with h
+  · simp only [ofBitVec, BitVec.getElem_extractLsb', zero_add, Nat.reduceAdd]
+    rw [BitVec.getLsbD_eq_getElem (by omega)]
+  · simp only [ofBitVec, BitVec.getElem_extractLsb', Nat.reduceAdd]
+    have := Nat.add_sub_cancel' (Nat.ge_of_not_lt h)
+    congr
+
+@[simp]
+theorem fst_ofBitVec_append {x y : UInt128} : (ofBitVec (y ++ x)).1 = x := by
+  simp [ofBitVec]
+  bv_decide
+
+@[simp]
+theorem snd_ofBitVec_append {x y : UInt128} : (ofBitVec (y ++ x)).2 = y := by
+  simp [ofBitVec]
+  bv_decide
+
+@[ext]
+theorem ext (h : p.2 ++ p.1 = q.2 ++ q.1) : p = q := by
+  rcases p with ⟨p₁,p₂⟩
+  rcases q with ⟨q₁,q₂⟩
+  simp only [Nat.reduceAdd] at h
+  congr
+  · bv_decide
+  · bv_decide
+
+
+/-
+theorem toNat_lt_U128_MOD_iff : p.toNat < U128_MOD ↔ p.2 = 0 := by
+  simp only [toNat]
   constructor
   · intro h
     have := Nat.lt_of_add_lt h
@@ -50,130 +88,68 @@ theorem val_lt_U128_MOD_iff : p.val < U128_MOD ↔ p.2 = 0 := by
 theorem U128_MOD_le_val_iff : U128_MOD ≤ p.val ↔ p.2 ≠ 0 := by
   rw [← not_iff_not, not_le, val_lt_U128_MOD_iff]
   simp
+-/
 
-protected def add : UInt256 where
-  fst := p.1 + q.1
-  snd := p.2 + q.2 + if p.1.val + q.1.val < U128_MOD then 0 else 1
+
+
+protected def add : UInt256 := ofBitVec ((p.2 ++ p.1) + (q.2 ++ q.1))
 
 instance (priority := high) : Add UInt256 := ⟨UInt256.add⟩
 
 protected theorem add_def :
-    p + q = ⟨p.1 + q.1, p.2 + q.2 + if p.1.val + q.1.val < U128_MOD then 0 else 1⟩ :=
+    p + q = ofBitVec ((p.2 ++ p.1) + (q.2 ++ q.1)) :=
   rfl
 
-theorem val_add_of_lt (h : p.val + q.val < U256_MOD) : (p + q).val = p.val + q.val := by
-  rcases p with ⟨pₗ, pₕ⟩; rcases q with ⟨qₗ, qₕ⟩
-  simp [val, UInt256.add_def] at h ⊢
-  split_ifs with hlt
-  · rw [add_zero, ZMod.val_add_of_lt hlt]
-    by_cases hlt' : pₕ.val + qₕ.val < U128_MOD
-    · rw [ZMod.val_add_of_lt hlt']
-      ring_nf
-    · exfalso; rw [← not_le] at h; apply h
-      ring_nf
-      rw [← mul_add]
-      rw [not_lt] at hlt'
-      apply le_trans _ (add_le_add_right (add_le_add_right (Nat.mul_le_mul_left _ hlt') _) _)
-      apply le_trans _ (Nat.le_add_right _ _)
-      apply le_trans _ (Nat.le_add_right _ _)
-      exact le_of_eq U256_MOD_eq_mul
-  · rw [not_lt] at hlt
-    ring_nf at h; rw [← mul_add] at h
-    have hlt'' : pₕ.val + qₕ.val < U128_MOD := by
-      replace h := Nat.lt_of_add_lt (Nat.lt_of_add_lt h)
-      rw [U256_MOD_eq_mul] at h
-      exact lt_of_mul_lt_mul_left h (Nat.zero_le _)
-    have hlt' : pₗ.val + qₗ.val < 2 * U128_MOD := by
-      rw [two_mul]
-      exact add_lt_add (ZMod.val_lt _) (ZMod.val_lt _)
-    have hlt''' : (pₕ + qₕ).val + (1 : UInt128).val < U128_MOD := by
-      rw [ZMod.val_add_of_lt hlt'']
-      rw [add_assoc] at h
-      have := add_lt_of_add_lt_left h hlt
-      rwa [← mul_add_one U128_MOD, ← Nat.lt_div_iff_mul_lt U128_MOD_dvd_U256_MOD, U256_MOD_div,
-        ← ZMod.val_one U128_MOD] at this
-    rw [ZMod.val_add pₗ qₗ, Nat.mod_eq_of_le_of_lt hlt hlt', ZMod.val_add_of_lt hlt''',
-      ZMod.val_add_of_lt hlt'', ZMod.val_one, mul_add, mul_add, mul_one, add_assoc,
-      add_comm U128_MOD, Nat.sub_add_cancel hlt]
-    ac_rfl
+@[simp]
+lemma add_no_overflow (p q : UInt256) (h₁ : ¬ BitVec.uaddOverflow p.1 q.1) :
+    p + q = (p.1 + q.1, p.2 + q.2) := by
+  simp only [UInt256.add_def, UInt256.ofBitVec, Nat.reduceAdd]
+  apply Prod.ext <;> bv_decide
 
--- TODO generalize the following lemma
-/-- Characterization of overflow in U256. -/
-theorem val_add_val_lt_iff : U256_MOD ≤ p.val + q.val ↔
-    (U128_MOD ≤ p.2.val + q.2.val
-    ∨ U128_MOD ≤ p.1.val + q.1.val ∧ U128_MOD ≤ p.2.val + q.2.val + 1) := by
-  constructor
-  · rw [← not_imp_not, not_le, not_or, not_le, not_and_or, not_le, not_le]
-    rintro ⟨h,(h'|h')⟩ <;> simp only [val] <;> ring_nf <;> rw [add_assoc, ← mul_add]
-    · rw [Nat.lt_iff_le_pred U128_MOD_pos.out] at h h'
-      apply lt_of_le_of_lt (Nat.add_le_add_left h' _)
-      apply lt_of_le_of_lt (Nat.add_le_add_right (Nat.mul_le_mul_left _ h) _) _
-      norm_num [U128_MOD, U256_MOD]
-    · replace h' := Nat.lt_sub_of_add_lt h'; rw [Nat.lt_iff_le_pred (by norm_num [U128_MOD])] at h'
-      have h := Nat.add_lt_add p.1.val_lt q.1.val_lt
-      rw [Nat.lt_iff_le_pred (by norm_num [U128_MOD, U256_MOD])] at h
-      apply lt_of_le_of_lt (Nat.add_le_add_left h _)
-      apply lt_of_le_of_lt (Nat.add_le_add_right (Nat.mul_le_mul_left _ h') _) _
-      norm_num [U128_MOD, U256_MOD]
-  · rintro (h|⟨h,h'⟩) <;> simp only [val] <;> ring_nf <;> rw [add_assoc, ← mul_add]
-    · exact Nat.le_add_of_le_left (Nat.mul_le_mul_left U128_MOD h)
-    · refine le_trans ?_ (Nat.add_le_add_left h _)
-      refine le_trans ?_ (Nat.add_le_add_right (Nat.mul_le_mul_left _ (Nat.sub_le_of_le_add h')) _)
-      norm_num [U128_MOD, U256_MOD]
+@[simp]
+lemma add_overflow (p q : UInt256) (h₁ : BitVec.uaddOverflow p.1 q.1) :
+    p + q = (p.1 + q.1, p.2 + q.2 + 1#128) := by
+  simp only [UInt256.add_def, UInt256.ofBitVec, Nat.reduceAdd]
+  apply Prod.ext <;> bv_decide
 
-protected def sub : UInt256 where
-  fst := p.1 - q.1
-  snd := p.2 - q.2 - if p.1.val < q.1.val then 1 else 0
-
+protected def sub : UInt256 := ofBitVec ((p.2 ++ p.1) - (q.2 ++ q.1))
 instance : Sub UInt256 := ⟨UInt256.sub⟩
 
 protected theorem sub_def :
-    p - q = ⟨p.1 - q.1, p.2 - q.2 - if p.1.val < q.1.val then 1 else 0⟩ :=
+    p - q = ofBitVec ((p.2 ++ p.1) - (q.2 ++ q.1)) :=
   rfl
 
-theorem val_lt_val_iff : p.val < q.val ↔
-    (p.2.val < q.2.val ∨ p.1.val < q.1.val ∧ p.2.val = q.2.val) := by
-  constructor
-  · rw [← not_imp_not, not_lt, not_or, not_and_or, not_lt, not_lt]
-    rintro ⟨h,(h'|h')⟩ <;> simp only [val]
-    · apply le_trans (Nat.add_le_add_right (Nat.mul_le_mul_left _ h) _)
-      apply Nat.add_le_add_left h'
-    · replace h := Nat.lt_of_le_of_ne h (Ne.symm h')
-      rw [← Nat.add_one_le_iff] at h
-      apply le_trans _ (Nat.add_le_add_right (Nat.mul_le_mul_left _ h) _)
-      rw [mul_add, mul_one, add_assoc]
-      apply Nat.add_le_add_left
-      apply Nat.le_add_of_le_left
-      exact le_of_lt q.1.val_lt
-  · rintro (h|⟨h,h'⟩) <;> simp only [val]
-    · rw [← Nat.add_one_le_iff] at h ⊢
-      apply le_trans _ (Nat.add_le_add_right (Nat.mul_le_mul_left _ h) _)
-      rw [mul_add, mul_one, add_assoc, add_assoc]
-      apply Nat.add_le_add_left
-      apply Nat.le_add_of_le_left
-      rw [Nat.add_one_le_iff]
-      exact p.1.val_lt
-    · rw [h']; apply Nat.add_lt_add_left h
+@[simp]
+lemma sub_no_overflow (p q : UInt256) (h₁ : ¬ BitVec.usubOverflow p.1 q.1) :
+    p - q = (p.1 - q.1, p.2 - q.2) := by
+  simp only [UInt256.sub_def, UInt256.ofBitVec]
+  apply Prod.ext <;> bv_decide
+
+@[simp]
+lemma sub_overflow (p q : UInt256) (h₁ : BitVec.usubOverflow p.1 q.1) :
+    p - q = (p.1 - q.1, p.2 - q.2 - 1#128) := by
+  simp only [UInt256.sub_def, UInt256.ofBitVec, Nat.reduceSub]
+  apply Prod.ext <;> bv_decide
 
 /-- Multiplication on `UInt256` as implemented by `u256_overflow_mul`. -/
-protected def mul : UInt256 where
-  fst := p.1 * q.1
-  snd := ZMod.hmul p.1 q.1 + p.1 * q.2 + p.2 * q.1
+protected def mul : UInt256  := ofBitVec ((p.2 ++ p.1) * (q.2 ++ q.1))
 
 instance : Mul UInt256 := ⟨UInt256.mul⟩
 
-protected theorem mul_def : p * q = ⟨p.1 * q.1, ZMod.hmul p.1 q.1 + p.1 * q.2 + p.2 * q.1⟩ :=
+protected theorem mul_def : p * q = ofBitVec ((p.2 ++ p.1) * (q.2 ++ q.1)) :=
   rfl
 
+/-
 @[simp]
 theorem val_mul_of_low (p q : UInt128) :
   UInt256.val (HMul.hMul (α := UInt256) (β := UInt256) ⟨p, 0⟩ ⟨q, 0⟩) = p.val * q.val := by
   simp [UInt256.mul_def, UInt256.val, ← ZMod.val_mul_val_eq_hmul]
+-/
 
-protected def zero : UInt256 where
-  fst := 0
-  snd := 0
+protected def zero : UInt256 := ofBitVec 0
 
 instance : Zero UInt256 := ⟨UInt256.zero⟩
 
-protected theorem zero_def : (0 : UInt256) = (0, 0) := rfl
+protected theorem zero_def : (0 : UInt256) = ofBitVec 0 := rfl
+
+instance : Inhabited UInt256 := ⟨0⟩

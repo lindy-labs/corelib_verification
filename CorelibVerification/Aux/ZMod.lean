@@ -1,5 +1,6 @@
 import Aegis.Types
 import Aegis.Aux.ZMod.HMul
+import Mathlib.Tactic.NormNum
 
 open Sierra
 
@@ -11,28 +12,6 @@ theorem ZMod.val_pos_of_ne_zero {a : ZMod n} [Fact (1 < n)] (h : a ≠ 0) : 0 < 
   rw [ZMod.val_eq_zero] at h
   contradiction
 
-theorem ZMod.val_pow {m n : ℕ} {a : ZMod n} [ilt : Fact (1 < n)] (h : a.val ^ m < n) :
-    (a ^ m).val = a.val ^ m := by
-  induction m with
-  | zero => simp [ZMod.val_one]
-  | succ m ih =>
-    have : a.val ^ m < n := by
-      by_cases ha : a = 0
-      · cases ha
-        by_cases hm : m = 0
-        · cases hm; simp [ilt.out]
-        · simp only [val_zero, ne_eq, hm, not_false_eq_true, zero_pow, Nat.zero_lt_of_lt h]
-      · exact lt_of_le_of_lt
-         (Nat.pow_le_pow_of_le_right (ZMod.val_pos_of_ne_zero ha) (Nat.le_succ m)) h
-    rw [pow_succ, ZMod.val_mul, ih this, ← pow_succ, Nat.mod_eq_of_lt h]
-
-theorem ZMod.val_pow_le {m n : ℕ} [Fact (1 < n)] {a : ZMod n} : (a ^ m).val ≤ a.val ^ m := by
-  induction m with
-  | zero => simp [ZMod.val_one]
-  | succ m ih =>
-    rw [pow_succ, pow_succ]
-    apply le_trans (ZMod.val_mul_le _ _)
-    apply Nat.mul_le_mul_right _ ih
 
 instance : Fact (1 < U8_MOD) := ⟨by unfold U8_MOD; norm_num⟩
 
@@ -51,22 +30,6 @@ theorem ZMod.val_add_of_ge {n : ℕ} [NeZero n] {a b : ZMod n} (h : a.val + b.va
   rw [ZMod.val_add, Nat.add_mod_add_of_le_add_mod, Nat.mod_eq_of_lt (ZMod.val_lt _),
     Nat.mod_eq_of_lt (ZMod.val_lt _)]
   rwa [Nat.mod_eq_of_lt (ZMod.val_lt _), Nat.mod_eq_of_lt (ZMod.val_lt _)]
-
-theorem ZMod.val_neg {n : ℕ} [nz : NeZero n] (a : ZMod n) [na : NeZero a] :
-    (- a).val = n - a.val := by
-  cases n with
-  | zero => cases nz; simp_all
-  | succ n =>
-    symm
-    apply Nat.sub_eq_of_eq_add
-    rw [← ZMod.val_add_of_ge, neg_add_self, ZMod.val_zero, zero_add]
-    apply le_of_not_lt
-    intro h
-    have : 0 = val (-a) + val a := by rw[← ZMod.val_zero (n := n.succ),
-      ← add_left_neg, ZMod.val_add, Nat.mod_eq_of_lt h]
-    have : a.val = 0 := by linarith only [this]
-    rw [ZMod.val_eq_zero] at this
-    exact absurd this na.out
 
 theorem ZMod.cast_rat_eq_zero_iff {m : ℕ} [NeZero m] (a : ZMod m) :
     (a.cast : ℚ) = 0 ↔ a = 0 := by
@@ -111,16 +74,10 @@ theorem Nat.le_add_of_le_right {a b c : ℕ} (h : a ≤ c) : a ≤ b + c := by
   apply Nat.le_add_of_le_left h
 
 theorem Nat.mul_add_div_eq_of_lt {a b c : ℕ} (h : c < b) : (b * a + c) / b = a := by
-  rw [add_div (Nat.zero_lt_of_lt h)]
-  simp only [mul_mod_right, zero_add, Nat.mul_div_cancel_left _ (Nat.zero_lt_of_lt h)]
-  have : ¬ b ≤ c % b := by rw [not_le]; apply mod_lt _ (Nat.zero_lt_of_lt h)
-  simp [Nat.div_eq_of_lt h, this]
-
-theorem ZMod.val_mul_iff_lt {n : ℕ} [NeZero n] (a b : ZMod n) :
-    (a * b).val = a.val * b.val ↔ a.val * b.val < n := by
-  constructor <;> intro h
-  · rw [←h]; apply ZMod.val_lt
-  · apply ZMod.val_mul_of_lt h
+  rw [Nat.add_div_of_dvd_right (Exists.intro a rfl), Nat.div_eq_of_lt h]
+  simp
+  apply Nat.mul_div_cancel_left
+  exact zero_lt_of_lt h
 
 theorem ZMod.hmul_eq_zero_iff {n : ℕ} [NeZero n] (a b : ZMod n) :
     (ZMod.hmul a b = 0) ↔ (a.val * b.val < n) := by
@@ -130,7 +87,8 @@ theorem ZMod.hmul_eq_zero_iff {n : ℕ} [NeZero n] (a b : ZMod n) :
     · simp only [hmul]
       intro h
       injection h with h
-      simp only [Nat.zero_mod, add_pos_iff, or_true, Nat.div_eq_zero_iff (Fin.pos a)] at h
+      simp only [Nat.zero_mod, add_pos_iff, or_true, Nat.div_eq_zero_iff] at h
+      simp only [Nat.add_eq_zero, one_ne_zero, and_false, Nat.succ_eq_add_one, false_or] at h
       exact h
     · intro h
       simp only [hmul]
@@ -186,7 +144,25 @@ theorem ZMod.cast_cast_of_lt {m n : ℕ} [NeZero m] (h : m < n) {a : ZMod m} :
   rcases m with (⟨⟩|⟨m⟩); · cases NeZero.ne 0 rfl
   rcases n with (⟨⟩|⟨n⟩); · simp at h
   rcases a with ⟨a, ha⟩
-  simp only [cast, Nat.cast, NatCast.natCast, Fin.ofNat'', val]
+  simp only [cast, Nat.cast, NatCast.natCast, Fin.ofNat', val]
   apply Fin.ext
   dsimp only
   rw [Nat.mod_eq_of_lt (lt_of_le_of_lt (Nat.mod_le _ _) ha), Nat.mod_eq_of_lt (lt_trans ha h)]
+
+@[simp]
+theorem ZMod.castLE_eq_zero_iff_eq_zero {m n : ℕ} (a : ZMod m.succ) (h : m.succ ≤ n) :
+    Fin.castLE h a = (@OfNat.ofNat (Fin n) 0 (@Fin.instOfNat _ ⟨by omega⟩ _)) ↔ a = 0 := by
+  cases n using Nat.rec
+  case zero => simp at h
+  case succ n _ =>
+    constructor
+    · intro h'
+      rwa [← Fin.castLE_zero h, Fin.castLE_inj] at h'
+    · rintro rfl
+      simp
+
+@[simp]
+theorem ZMod.val_sub_one {m : ℕ} [NeZero m] [Fact (1 < m)] {a : ZMod m} (h : a ≠ 0) :
+    (a - 1).val = a.val - 1 := by
+  rw [val_sub (by rw [val_one]; refine Nat.one_le_iff_ne_zero.mpr ?_; exact (val_ne_zero a).mpr h)]
+  rw [val_one]
