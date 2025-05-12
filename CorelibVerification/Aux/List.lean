@@ -115,3 +115,7 @@ lemma length_tail_takeWhile [Inhabited α] [DecidableEq α] (as : List α) (h : 
     contradiction
   · simp [takeWhile_cons]
     exact h'
+
+lemma drop_cons (xs : List α) (x : α) (h : 0 < i) : (x :: xs).drop i = xs.drop (i - 1) := by
+  conv_lhs => rw [← Nat.sub_add_cancel (n := i) (m := 1) (by omega)]
+  simp

@@ -2,6 +2,7 @@ import CorelibVerification.Aux.Option
 import CorelibVerification.Aux.List
 import CorelibVerification.Aux.Bool
 import CorelibVerification.Corelib.Integer
+import CorelibVerification.Corelib.Integer.Internal
 import CorelibVerification.Load
 import Mathlib.Data.Option.Basic
 --import Lean.Parser.Tactic.Save
@@ -166,45 +167,31 @@ aegis_prove "core::integer::u256Serde::deserialize" :=
       · aesop
 
 aegis_spec "core::array::serialize_array_helper<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>" :=
-  fun m _ gas data str _ gas' ρ =>
-  let c := m.costs id!"core::array::serialize_array_helper<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>"
-  if (data.length + 1) * c ≤ gas then
-    gas' = gas - (data.length + 1) * c ∧ ρ = .inl (str ++ data.map UInt64.toFelt, ())
-  else ρ.isRight
+  fun _ _ _ data str _ _ ρ =>
+  ρ = .inl (str ++ data.map UInt64.toFelt, ()) ∨
+    ρ.isRight
 
 aegis_prove "core::array::serialize_array_helper<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>" :=
   fun m _ gas data str _ gas' ρ => by
   unfold_spec "core::array::serialize_array_helper<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>"
-  generalize m.costs id!"core::array::serialize_array_helper<core::integer::u64,core::serde::into_felt252_based::SerdeImpl<core::integer::u64,core::integer::u64Copy,core::integer::U64IntoFelt252,core::integer::Felt252TryIntoU64>,core::integer::u64Drop>" = c
-  aesop (add simp [add_mul, Nat.sub_mul, Nat.sub_add_eq, tsub_tsub_assoc, Nat.lt_add_left,
-      Nat.le_mul_of_pos_left, Nat.sub_add_comm, Nat.sub_lt_iff_lt_add', Nat.le_sub_iff_add_le],
-    safe forward [List.length_pos_of_ne], safe [(by grind)])
-    (erase simp [List.head_cons_tail])
+  aesop
 
 aegis_spec "core::array::serialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>" :=
-  fun m _ gas data str _ gas' ρ =>
-  let c := m.costs id!"core::array::serialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>"
-  if (data.length + 1) * c ≤ gas then
-    gas' = gas - (data.length + 1) * c ∧ ρ = .inl (str ++ data, ())
-  else ρ.isRight
+  fun _ _ _ data str _ _ ρ =>
+  ρ = .inl (str ++ data, ()) ∨
+    ρ.isRight
 
 set_option grind.warning false
 
 aegis_prove "core::array::serialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>" :=
   fun m _ gas data str _ gas' ρ => by
   unfold_spec "core::array::serialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>"
-  generalize m.costs id!"core::array::serialize_array_helper<core::felt252,core::Felt252Serde,core::felt252Drop>" = c
-  aesop (add simp [add_mul, Nat.sub_mul, Nat.sub_add_eq, tsub_tsub_assoc, Nat.lt_add_left,
-      Nat.le_mul_of_pos_left, Nat.sub_add_comm, Nat.sub_lt_iff_lt_add', Nat.le_sub_iff_add_le],
-    safe forward [List.length_pos_of_ne]) (config := { warnOnNonterminal := .false })
-  · grind
+  aesop
 
 aegis_spec "core::array::ArraySerde::<core::felt252, core::Felt252Serde, core::felt252Drop>::serialize" :=
-  fun m _ gas data str _ gas' ρ =>
-  let c := m.costs id!"core::array::serialize_array_helper<core::felt252,core::Felt252Serde,core::felt252Drop>"
-  if (data.length + 1) * c ≤ gas then
-    gas' = gas - (data.length + 1) * c ∧ ρ = .inl (str ++ [(data.length : Sierra.UInt32).toFelt] ++ data, ())
-  else ρ.isRight
+  fun _ _ _ data str _ _ ρ =>
+  ρ = .inl (str ++ [(data.length : Sierra.UInt32).toFelt] ++ data, ()) ∨
+    ρ.isRight
 
 aegis_prove "core::array::ArraySerde::<core::felt252, core::Felt252Serde, core::felt252Drop>::serialize" :=
   fun m _ gas data str _ gas' ρ => by
@@ -212,133 +199,98 @@ aegis_prove "core::array::ArraySerde::<core::felt252, core::Felt252Serde, core::
   aesop
 
 aegis_spec "core::array::deserialize_array_helper::<core::integer::u128, core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>" :=
-  fun m _ gas s curr r _ gas' ρ =>
-  let c := m.costs id!"core::array::deserialize_array_helper::<core::integer::u128, core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>"
-  if ((s.takeWhileN (·.val < U128_MOD) r.val).length + 1) * c ≤ gas then
-    if r.val ≤ s.length ∧ (s.take r.val).all (·.val < U128_MOD) then
-      gas' = gas - (r.val + 1) * c
-      ∧ ρ = .inl (s.drop r.val, .inl (curr ++ (s.take r.val).map (fun x => .ofNat _ x.val)))
-    else ρ = .inl ((s.dropWhileN (·.val < U128_MOD) r.val).tail, .inr ())
-  else ρ.isRight
+  fun _ _ _ s curr r _ _ ρ =>
+  (if r.val ≤ s.length ∧ (s.take r.val).all (·.val < U128_MOD) then
+      ρ = .inl (s.drop r.val, .inl (curr ++ (s.take r.val).map (fun x => .ofNat _ x.val)))
+  else ρ = .inl ((s.dropWhileN (·.val < U128_MOD) r.val).tail, .inr ())) ∨
+    ρ.isRight
 
 aegis_prove "core::array::deserialize_array_helper::<core::integer::u128, core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>" :=
   fun m _ gas s curr r _ gas' ρ => by
   unfold_spec "core::array::deserialize_array_helper::<core::integer::u128, core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>"
-  generalize m.costs id!"core::array::deserialize_array_helper::<core::integer::u128, core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>" = c
-  rintro ⟨hd,_,_,_,_,_,(⟨hle,h⟩|⟨hlt,rfl⟩)⟩
-  · simp only [Int.cast_zero, Bool.toSierraBool_decide_inl', Int.cast_one, List.length_takeWhileN,
-      List.length_tail, List.all_eq_true, decide_eq_true_eq, List.drop_tail, List.map_take,
-      List.map_tail, List.append_assoc, List.cons_append, List.nil_append,
-      Bool.toSierraBool_decide_inr'] at h ⊢
-    rcases h with (⟨hnz,h⟩|⟨rfl,rfl,rfl⟩)
-    · rcases h with (⟨h,h₁,rfl,rfl⟩|⟨h,rfl,rfl⟩)
-      · rw [Option.inl_eq_toSum_iff] at h
-        simp at h
-        rcases h with ⟨hd, ⟨hhd, hhd'⟩, rfl⟩
-        rcases s with (⟨⟩|⟨hd,tl⟩)
-        · simp at hhd
-        · simp at h₁
-          simp at hhd
-          subst hhd
-          split_ifs at h₁ with h h'
-          · rw [ZMod.val_sub_one hnz] at h'
-            rcases h₁ with ⟨rfl,rfl⟩
-            simp [ZMod.val_sub_one hnz]
-            refine ⟨?_, ⟨?_, ?_⟩, ?_, ?_, ?_⟩
-            · rw [List.takeWhile_cons_of_pos (p := fun x => decide (ZMod.val x < U128_MOD)) (decide_eq_true hhd')]
-              rw [← Nat.sub_le_sub_iff_right hle]
-              refine le_trans ?_ h
-              rw [← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz)]
-              simp [add_mul, ZMod.val_sub_one hnz]
-            · omega
-            · rw [← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz), List.take_succ_cons]
-              simp [hhd']
-              exact h'.2
-            · simp [add_mul, Nat.sub_mul, Nat.sub_add_eq]
-              rw [Nat.sub_sub_sub_cancel_right (Nat.le_mul_of_pos_left c (ZMod.val_pos.mpr hnz))]
-            · conv_rhs => rw [← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz)]
-              simp
-            · conv_rhs => rw [← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz)]
-              rw [List.take_succ_cons]
-          · subst h₁
-            simp at h'
-            simp
-            refine ⟨?_, ?_, ?_⟩
-            · rw [List.takeWhile_cons_of_pos (p := fun x => decide (ZMod.val x < U128_MOD)) (decide_eq_true hhd'),
-                ← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz),
-                ← ZMod.val_sub_one hnz]
-              simp only [add_mul, one_mul, List.length_cons, Nat.add_min_add_right] at ⊢ h
-              rwa [← Nat.le_sub_iff_add_le hle]
-            · intro hle2
-              rw [← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz),
-                ← ZMod.val_sub_one hnz]
-              simp [not_le_of_gt hhd']
-              apply h'
-              rw [ZMod.val_sub_one hnz]
-              omega
-            · rw [List.dropWhileN_cons_of_pos _ _ _ (ZMod.val_pos.mpr hnz)]
-              simp [hhd', ← ZMod.val_sub_one hnz]
-          · simp only [List.length_cons, List.map_cons, h₁, if_true_right]
-            intro hle2
-            exfalso
-            rw [List.takeWhile_cons_of_pos (p := fun x => decide (ZMod.val x < U128_MOD)) (decide_eq_true hhd'),
-                ← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz),
-                ← ZMod.val_sub_one hnz] at hle2
-            simp at hle2
-            rw [add_mul, one_mul, ← Nat.le_sub_iff_add_le hle] at hle2
-            contradiction
-      · rw [Option.inr_eq_toSum_iff] at h
-        simp only [Sum.inl.injEq, Prod.mk.injEq, reduceCtorEq, and_false, and_true, if_false_left,
-          not_and, not_forall, Classical.not_imp, not_lt, Sum.isRight_inl, Bool.false_eq_true,
-          if_false_right]
-        constructor
-        · refine le_trans ?_ hle
-          simp only [Option.map_eq_none', Option.filter_eq_none, List.head?_eq_none_iff,
-            Option.mem_def, decide_eq_true_eq, not_lt] at h
-          cases s
-          · simp
-          · simp_all [List.takeWhile_cons, not_lt_of_ge]
-        · constructor
-          · intro hrle
-            simp only [Option.map_eq_none', Option.filter_eq_none, List.head?_eq_none_iff,
-              Option.mem_def, decide_eq_true_eq, not_lt] at h
-            rcases s with (⟨⟩|⟨hd,tl⟩)
-            · simp only [List.length_nil, nonpos_iff_eq_zero, ZMod.val_eq_zero] at hrle
-              contradiction
-            · simp only [reduceCtorEq, List.head?_cons, Option.some.injEq, forall_eq',
-                false_or] at h
-              use hd
-              rw [exists_prop]
-              refine ⟨?_, h⟩
-              rw [← Nat.sub_one_add_one_eq_of_pos (ZMod.val_pos.mpr hnz)]
-              simp
+  rintro ⟨_,_,_,_,_,(⟨-,h⟩|⟨-,h⟩)⟩
+  · rcases h with (⟨h₁,h⟩|h)
+    · simp only [Int.cast_zero, Bool.toSierraBool_decide_inl'] at h₁
+      rcases h with (⟨h₂,h,rfl⟩|⟨h₂,rfl⟩)
+      simp only [Option.inl_eq_toSum_iff, Option.map_eq_some', Option.filter_eq_some,
+        Option.mem_def, decide_eq_true_eq, Function.comp_apply] at h₂
+      · rcases h with (h|h)
+        · simp only [Int.cast_one, List.length_tail, List.all_eq_true, decide_eq_true_eq,
+            List.drop_tail, List.map_take, List.map_tail, List.append_assoc, List.cons_append,
+            List.nil_append] at h ⊢
+          split_ifs at h with h₃
           · rcases s with (⟨⟩|⟨hd,tl⟩)
+            · aesop
+            · simp only [List.length_cons, add_tsub_cancel_right, List.tail_cons,
+                List.drop_succ_cons, List.map_cons, List.head?_cons, Option.some.injEq, existsAndEq,
+                true_and] at *
+              rw [ZMod.val_sub_one h₁, Nat.sub_le_iff_le_add] at h₃
+              have : r.val ≤ tl.length + 1 ∧ ∀ x ∈ List.take (ZMod.val r) (hd :: tl), ZMod.val x < U128_MOD := by
+                refine ⟨h₃.1, fun x hx => ?_⟩
+                rw [List.take_cons (ZMod.val_pos.mpr h₁), List.mem_cons] at hx
+                rcases hx with (rfl|hx)
+                · exact h₂.1
+                · exact h₃.2 x hx
+              split_ifs
+              subst h
+              left
+              congr 2
+              · rw [ZMod.val_sub_one h₁, List.drop_cons _ _ (ZMod.val_pos.mpr h₁)]
+              · cases h₂.2
+                rw [List.take_cons (ZMod.val_pos.mpr h₁), ZMod.val_sub_one h₁]
+          · cases h
+            left
+            simp only [not_and, not_forall, Classical.not_imp, not_lt, Sum.inl.injEq, Prod.mk.injEq,
+              reduceCtorEq, and_false, and_true, if_false_left] at h₃ ⊢
+            constructor
+            · simp only [ZMod.val_sub_one h₁, tsub_le_iff_right, exists_prop] at h₃
+              intro h
+              obtain ⟨x, hx, h₃⟩ := h₃ (h.trans (by omega))
+              refine ⟨x, ?_, h₃⟩
+              rw [List.take_pred_tail (ZMod.val_pos.mpr h₁)] at hx
+              exact List.mem_of_mem_tail hx
+            · simp only [ZMod.val_sub_one h₁]
+              rcases s with (⟨⟩|⟨hd,tl⟩)
+              · simp
+              · simp at h₂ ⊢
+                rw [List.dropWhileN_cons_of_pos _ _ _ (ZMod.val_pos.mpr h₁)]
+                simp [h₂.1]
+        · aesop
+      · simp only [Option.inr_eq_toSum_iff, Option.map_eq_none', Option.filter_eq_none,
+          List.head?_eq_none_iff, Option.mem_def, decide_eq_true_eq, not_lt] at h₂
+        rcases h₂ with (h₂|h₂)
+        · aesop
+        · split_ifs with h₃
+          · rcases s with (⟨⟩|⟨hd,tl⟩)
+            · aesop
+            · exfalso
+              simp only [List.head?_cons, Option.some.injEq, forall_eq', List.length_cons,
+                List.all_eq_true, decide_eq_true_eq] at h₂ h₃
+              have := h₃.2 hd (by rw [List.take_cons (ZMod.val_pos.mpr h₁)]; exact List.mem_cons_self)
+              apply Nat.le_lt_asymm h₂ this
+          · simp only [List.all_eq_true, decide_eq_true_eq, not_and, not_forall, Classical.not_imp,
+              not_lt, Sum.inl.injEq, Prod.mk.injEq, and_true, Sum.isRight_inl, Bool.false_eq_true,
+              or_false] at h₃ ⊢
+            rcases s with (⟨⟩|⟨hd,tl⟩)
             · simp
-            · simp at h ⊢
-              rw [List.dropWhileN_cons_of_pos _ _ _ (ZMod.val_pos.mpr hnz)]
-              simp [not_lt_of_ge h]
-    · simpa
-  · simp only [List.length_takeWhileN, List.all_eq_true, decide_eq_true_eq, Int.cast_ofNat,
-      List.nil_append, List.map_take, reduceCtorEq, and_false, ite_self, Sum.isRight_inr,
-      if_false_left, not_le, and_true]
-    apply lt_of_lt_of_le hlt
-    exact Nat.le_mul_of_pos_left c (Nat.zero_lt_succ _)
+            · simp only [List.head?_cons, Option.some.injEq, forall_eq', List.length_cons,
+                exists_prop, List.tail_cons] at h₂ h₃ ⊢
+              rw [List.dropWhileN_cons_of_pos _ _ _ (ZMod.val_pos.mpr h₁)]
+              simp [not_lt_of_ge h₂]
+    · aesop
+  · aesop
 
 aegis_spec "core::array::deserialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>" :=
-  fun m _ gas s curr r _ gas' ρ =>
-  let c := m.costs id!"core::array::deserialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>"
-  if (r.val + 1) * c ≤ gas ∨ (s.length + 1) * c ≤ gas then
-    if r.val ≤ s.length then
-      gas' = gas - (r.val + 1) * c
-      ∧ ρ = .inl (s.drop r.val, .inl (curr ++ s.take r.val))
-    else ρ = .inl (s.drop r.val, .inr ())
-  else ρ.isRight  -- TODO investigate why we can't make a statement on `gas'` here
+  fun _ _ _ s curr r _ _ ρ =>
+  (if r.val ≤ s.length then
+     ρ = .inl (s.drop r.val, .inl (curr ++ s.take r.val))
+    else ρ = .inl (s.drop r.val, .inr ())) ∨ ρ.isRight
 
 aegis_prove "core::array::deserialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>" :=
   fun m _ gas s curr r _ gas' ρ => by
   unfold_spec "core::array::deserialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>"
   generalize m.costs id!"core::array::deserialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>" = c
-  rintro ⟨_,_,hd,_,_,_,(⟨hle,h⟩|⟨h,rfl⟩)⟩ <;> dsimp only
+  rintro ⟨_,_,hd,_,_,(⟨hle,h⟩|⟨-,rfl⟩)⟩
   -- Case: Enough gas for one run
   · rcases h with (⟨hne,h⟩|⟨h,rfl,rfl⟩)
     -- Case: `r ≠ 0`
@@ -348,29 +300,26 @@ aegis_prove "core::array::deserialize_array_helper::<core::felt252, core::Felt25
       have hr : (r - 1).val = r.val - 1 := by apply ZMod.val_sub; rwa [ZMod.val_one]
       rcases h with (⟨hs,hrec,h⟩|⟨h,rfl,rfl⟩)
       -- Case: `s ≠ []`, recursive call succeeds (only case in which the context should now depend on the spec)
-      · dsimp only at hrec;erw [hr] at hrec
-        have hs' : 0 < s.length := by rw [List.length_pos_iff]; rintro rfl; simp at hs
+      · have hs' : 0 < s.length := by rw [List.length_pos_iff]; rintro rfl; simp at hs
         rcases h with ⟨rfl,rfl⟩
         simp only [ge_iff_le, List.length_tail, tsub_le_iff_right, List.append_assoc,
           List.singleton_append, Sum.inl.injEq, Prod.mk.injEq, Sum.isRight_inl,
           Nat.sub_add_cancel hr', Nat.sub_add_cancel hs'] at hrec
-        simp only [add_mul, one_mul, ← Nat.le_sub_iff_add_le hle]
-        split_ifs at hrec with hrsg hrs
-        · rcases hrec with ⟨rfl,rfl,rfl⟩
-          rcases hrsg with (hrsg|hrsg) <;>
-          · have : hd ∈ s.head? := by rw [Option.inl_eq_toSum_iff] at hs; simp [hs]
-            simp_all only [ne_eq, ge_iff_le, Option.mem_def, true_or, or_true, tsub_le_iff_right,
-              Nat.sub_sub, add_comm c, List.drop_tail, Nat.sub_add_cancel hr', Sum.inl.injEq,
-              Prod.mk.injEq, List.append_cancel_left_eq, true_and, and_self, ite_true,
-              Sum.isRight_inl, Option.toSum_some]
-            rw [← List.cons_head?_tail this]
-            conv_rhs => rw [← Nat.sub_one_add_one_eq_of_pos hr']
-            simp
-        · rcases hrec with ⟨rfl,rfl⟩
-          simpa [hrs, List.drop_tail, Nat.sub_add_cancel hr', prop_if_true_false, add_mul,
-            ← Nat.le_sub_iff_add_le hle]
-        -- Case: recursive call panics
-        · aesop
+        split_ifs at hrec with hrsg
+        · rcases hrec with (rfl|hrec)
+          · simp [hr, Nat.sub_one_add_one_eq_of_pos hs', Nat.sub_one_add_one_eq_of_pos hr',
+              List.take_pred_tail hr'] at hrsg ⊢
+            simp [hrsg, Option.inl_eq_toSum_iff] at hs ⊢
+            have : hd = s.head (List.ne_nil_of_length_pos hs') := by
+              symm
+              rwa [← List.head_eq_iff_head?_eq_some] at hs
+            rw [this, ← List.head_take (i := r.val) (List.ne_nil_of_length_pos (by rw [List.length_take]; omega))]
+            exact List.head_cons_tail (List.take (ZMod.val r) s) _
+          · right; assumption
+        · rcases hrec with (rfl|hrec)
+          · simp [hr, Nat.sub_one_add_one_eq_of_pos hs', Nat.sub_one_add_one_eq_of_pos hr'] at hrsg ⊢
+            assumption
+          · simp [hrec]
       -- Case: `s = []`
       · have : s = [] := by rwa [Option.inr_eq_toSum_iff, List.head?_eq_none_iff] at h
         simp [this, hne, hle]
@@ -380,49 +329,27 @@ aegis_prove "core::array::deserialize_array_helper::<core::felt252, core::Felt25
   · aesop (add simp [Nat.lt_add_left, add_mul])
 
 aegis_spec "core::array::ArraySerde::<core::felt252, core::Felt252Serde, core::felt252Drop>::deserialize" :=
-  fun m _ gas a _ gas' ρ =>
-  let c := m.costs id!"core::array::deserialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>"
+  fun _ _ _ a _ _ ρ =>
   if h : a = [] then ρ = .inl ([], .inr ())
   else
     let length := (a.head h).val
     let data := a.tail
-    if (length + 1) * c ≤ gas ∨ (data.length + 1) * c ≤ gas then
-      if length ≤ data.length then
-        gas' = gas - (length + 1) * c
-        ∧ ρ = .inl (data.drop length, .inl (data.take length))
-      else ρ = .inl (data.drop length, .inr ())
-    else ρ.isRight
+    (if length ≤ data.length then ρ = .inl (data.drop length, .inl (data.take length))
+     else ρ = .inl (data.drop length, .inr ())) ∨
+    ρ.isRight
 
 aegis_prove "core::array::ArraySerde::<core::felt252, core::Felt252Serde, core::felt252Drop>::deserialize" :=
   fun m _ gas a _ gas' ρ => by
   unfold_spec "core::array::ArraySerde::<core::felt252, core::Felt252Serde, core::felt252Drop>::deserialize"
-  generalize Metadata.costs m id!"core::array::deserialize_array_helper::<core::felt252, core::Felt252Serde, core::felt252Drop>" = c
-  aesop (add simp [add_mul])
+  aesop (add simp [add_mul, List.length_tail])
     (config := { warnOnNonterminal := .false })
-  · rw [List.head!_eq_head?, List.head?_eq_head left, Option.iget_some] at h
-    left; assumption
-  · rwa [List.head!_eq_head?, List.head?_eq_head left, Option.iget_some,
-      List.length_tail] at left_4
-  · rw [List.length_tail] at h_1
-    right; assumption
-  · rwa [List.head!_eq_head?, List.head?_eq_head left, Option.iget_some,
-      List.length_tail] at left_4
-  · rw [List.head!_eq_head?, List.head?_eq_head left, Option.iget_some] at h
-    left; assumption
-  · rwa [List.head!_eq_head?, List.head?_eq_head left, Option.iget_some,
-      List.length_tail] at left_4
-  · rw [List.length_tail] at h_1
-    right; assumption
-  · rwa [List.head!_eq_head?, List.head?_eq_head left, Option.iget_some,
-      List.length_tail] at left_4
-  · rwa [List.head!_eq_head?, List.head?_eq_head left, Option.iget_some] at left_2
+  · rwa [List.length_tail, List.head!_eq_head] at left_2
+  · rwa [List.length_tail, List.head!_eq_head] at left_2
 
 aegis_spec "core::array::ArraySerde<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>::serialize" :=
-  fun m _ gas data str _ gas' ρ =>
-  let c := m.costs id!"core::array::serialize_array_helper<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>"
-  if (data.length + 1) * c ≤ gas then
-    gas' = gas - (data.length + 1) * c ∧ ρ = .inl (str ++ [((data.length : Sierra.UInt32).toFelt : F)] ++ data.map Sierra.UInt64.toFelt, ())
-  else ρ.isRight
+  fun _ _ _ data str _ _ ρ =>
+  ρ = .inl (str ++ [((data.length : Sierra.UInt32).toFelt : F)] ++ data.map Sierra.UInt64.toFelt, ()) ∨
+    ρ.isRight
 
 aegis_prove "core::array::ArraySerde<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>::serialize" :=
   fun m _ gas data str _ gas' ρ => by
@@ -430,137 +357,102 @@ aegis_prove "core::array::ArraySerde<core::integer::u64, core::serde::into_felt2
   aesop
 
 aegis_spec "core::array::deserialize_array_helper<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>" :=
-  fun m _ gas s curr r _ gas' ρ =>
-  let c := m.costs id!"core::array::deserialize_array_helper::<core::integer::u64, core::serde::into_felt252_based::SerdeImpl::<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>"
-  if ((s.takeWhileN (·.val < U64_MOD) r.val).length + 1) * c ≤ gas then
-    if r.val ≤ s.length ∧ (s.take r.val).all (·.val < U64_MOD) then
-      gas' = gas - (r.val + 1) * c
-      ∧ ρ = .inl (s.drop r.val, .inl (curr ++ (s.take r.val).map (fun x => .ofNat _ x.val)))
-    else ρ = .inl ((s.dropWhileN (·.val < U64_MOD) r.val).tail, .inr ())
-  else ρ.isRight
+  fun _ _ _ s curr r _ _ ρ =>
+  (if r.val ≤ s.length ∧ (s.take r.val).all (·.val < U64_MOD) then
+      ρ = .inl (s.drop r.val, .inl (curr ++ (s.take r.val).map (fun x => .ofNat _ x.val)))
+    else ρ = .inl ((s.dropWhileN (·.val < U64_MOD) r.val).tail, .inr ())) ∨
+  ρ.isRight
 
 aegis_prove "core::array::deserialize_array_helper<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>" :=
   fun m _ gas s curr r _ gas' ρ => by
   unfold_spec "core::array::deserialize_array_helper<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>"
-  generalize m.costs id!"core::array::deserialize_array_helper::<core::integer::u64, core::serde::into_felt252_based::SerdeImpl::<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>" = c
-  rintro ⟨hd,_,_,_,_,_,(⟨hle,h⟩|⟨hlt,rfl⟩)⟩
-  · simp only [Int.cast_zero, Bool.toSierraBool_decide_inl', Int.cast_one, List.length_takeWhileN,
-      List.length_tail, List.all_eq_true, decide_eq_true_eq, List.drop_tail, List.map_take,
-      List.map_tail, List.append_assoc, List.cons_append, List.nil_append,
-      Bool.toSierraBool_decide_inr'] at h ⊢
-    rcases h with (⟨hnz,h⟩|⟨rfl,rfl,rfl⟩)
-    · rcases h with (⟨h,h₁,rfl,rfl⟩|⟨h,rfl,rfl⟩)
-      · rw [Option.inl_eq_toSum_iff] at h
-        simp at h
-        rcases h with ⟨hd, ⟨hhd, hhd'⟩, rfl⟩
-        rcases s with (⟨⟩|⟨hd,tl⟩)
-        · simp at hhd
-        · simp at h₁
-          simp at hhd
-          subst hhd
-          split_ifs at h₁ with h h'
-          · rw [ZMod.val_sub_one hnz] at h'
-            rcases h₁ with ⟨rfl,rfl⟩
-            simp [ZMod.val_sub_one hnz]
-            refine ⟨?_, ⟨?_, ?_⟩, ?_, ?_, ?_⟩
-            · rw [List.takeWhile_cons_of_pos (p := fun x => decide (ZMod.val x < U64_MOD)) (decide_eq_true hhd')]
-              rw [← Nat.sub_le_sub_iff_right hle]
-              refine le_trans ?_ h
-              rw [← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz)]
-              simp [add_mul, ZMod.val_sub_one hnz]
-            · omega
-            · rw [← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz), List.take_succ_cons]
-              simp [hhd']
-              exact h'.2
-            · simp [add_mul, Nat.sub_mul, Nat.sub_add_eq]
-              rw [Nat.sub_sub_sub_cancel_right (Nat.le_mul_of_pos_left c (ZMod.val_pos.mpr hnz))]
-            · conv_rhs => rw [← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz)]
-              simp
-            · conv_rhs => rw [← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz)]
-              rw [List.take_succ_cons]
-          · subst h₁
-            simp at h'
-            simp
-            refine ⟨?_, ?_, ?_⟩
-            · rw [List.takeWhile_cons_of_pos (p := fun x => decide (ZMod.val x < U64_MOD)) (decide_eq_true hhd'),
-                ← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz),
-                ← ZMod.val_sub_one hnz]
-              simp only [add_mul, one_mul, List.length_cons, Nat.add_min_add_right] at ⊢ h
-              rwa [← Nat.le_sub_iff_add_le hle]
-            · intro hle2
-              rw [← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz),
-                ← ZMod.val_sub_one hnz]
-              simp [not_le_of_gt hhd']
-              apply h'
-              rw [ZMod.val_sub_one hnz]
-              omega
-            · rw [List.dropWhileN_cons_of_pos _ _ _ (ZMod.val_pos.mpr hnz)]
-              simp [hhd', ← ZMod.val_sub_one hnz]
-          · simp only [List.length_cons, List.map_cons, h₁, if_true_right]
-            intro hle2
-            exfalso
-            rw [List.takeWhile_cons_of_pos (p := fun x => decide (ZMod.val x < U64_MOD)) (decide_eq_true hhd'),
-                ← Nat.sub_one_add_one ((ZMod.val_ne_zero r).mpr hnz),
-                ← ZMod.val_sub_one hnz] at hle2
-            simp at hle2
-            rw [add_mul, one_mul, ← Nat.le_sub_iff_add_le hle] at hle2
-            contradiction
-      · rw [Option.inr_eq_toSum_iff] at h
-        simp only [Sum.inl.injEq, Prod.mk.injEq, reduceCtorEq, and_false, and_true, if_false_left,
-          not_and, not_forall, Classical.not_imp, not_lt, Sum.isRight_inl, Bool.false_eq_true,
-          if_false_right]
-        constructor
-        · refine le_trans ?_ hle
-          simp only [Option.map_eq_none', Option.filter_eq_none, List.head?_eq_none_iff,
-            Option.mem_def, decide_eq_true_eq, not_lt] at h
-          cases s
-          · simp
-          · simp_all [List.takeWhile_cons, not_lt_of_ge]
-        · constructor
-          · intro hrle
-            simp only [Option.map_eq_none', Option.filter_eq_none, List.head?_eq_none_iff,
-              Option.mem_def, decide_eq_true_eq, not_lt] at h
-            rcases s with (⟨⟩|⟨hd,tl⟩)
-            · simp only [List.length_nil, nonpos_iff_eq_zero, ZMod.val_eq_zero] at hrle
-              contradiction
-            · simp only [reduceCtorEq, List.head?_cons, Option.some.injEq, forall_eq',
-                false_or] at h
-              use hd
-              rw [exists_prop]
-              refine ⟨?_, h⟩
-              rw [← Nat.sub_one_add_one_eq_of_pos (ZMod.val_pos.mpr hnz)]
-              simp
+  rintro ⟨_,_,_,_,_,(⟨-,h⟩|⟨-,h⟩)⟩
+  · rcases h with (⟨h₁,h⟩|h)
+    · simp only [Int.cast_zero, Bool.toSierraBool_decide_inl'] at h₁
+      rcases h with (⟨h₂,h,rfl⟩|⟨h₂,rfl⟩)
+      simp only [Option.inl_eq_toSum_iff, Option.map_eq_some', Option.filter_eq_some,
+        Option.mem_def, decide_eq_true_eq, Function.comp_apply] at h₂
+      · rcases h with (h|h)
+        · simp only [Int.cast_one, List.length_tail, List.all_eq_true, decide_eq_true_eq,
+            List.drop_tail, List.map_take, List.map_tail, List.append_assoc, List.cons_append,
+            List.nil_append] at h ⊢
+          split_ifs at h with h₃
           · rcases s with (⟨⟩|⟨hd,tl⟩)
+            · aesop
+            · simp only [List.length_cons, add_tsub_cancel_right, List.tail_cons,
+                List.drop_succ_cons, List.map_cons, List.head?_cons, Option.some.injEq, existsAndEq,
+                true_and] at *
+              rw [ZMod.val_sub_one h₁, Nat.sub_le_iff_le_add] at h₃
+              have : r.val ≤ tl.length + 1 ∧ ∀ x ∈ List.take (ZMod.val r) (hd :: tl), ZMod.val x < U64_MOD := by
+                refine ⟨h₃.1, fun x hx => ?_⟩
+                rw [List.take_cons (ZMod.val_pos.mpr h₁), List.mem_cons] at hx
+                rcases hx with (rfl|hx)
+                · exact h₂.1
+                · exact h₃.2 x hx
+              split_ifs
+              subst h
+              left
+              congr 2
+              · rw [ZMod.val_sub_one h₁, List.drop_cons _ _ (ZMod.val_pos.mpr h₁)]
+              · cases h₂.2
+                rw [List.take_cons (ZMod.val_pos.mpr h₁), ZMod.val_sub_one h₁]
+          · cases h
+            left
+            simp only [not_and, not_forall, Classical.not_imp, not_lt, Sum.inl.injEq, Prod.mk.injEq,
+              reduceCtorEq, and_false, and_true, if_false_left] at h₃ ⊢
+            constructor
+            · simp only [ZMod.val_sub_one h₁, tsub_le_iff_right, exists_prop] at h₃
+              intro h
+              obtain ⟨x, hx, h₃⟩ := h₃ (h.trans (by omega))
+              refine ⟨x, ?_, h₃⟩
+              rw [List.take_pred_tail (ZMod.val_pos.mpr h₁)] at hx
+              exact List.mem_of_mem_tail hx
+            · simp only [ZMod.val_sub_one h₁]
+              rcases s with (⟨⟩|⟨hd,tl⟩)
+              · simp
+              · simp at h₂ ⊢
+                rw [List.dropWhileN_cons_of_pos _ _ _ (ZMod.val_pos.mpr h₁)]
+                simp [h₂.1]
+        · aesop
+      · simp only [Option.inr_eq_toSum_iff, Option.map_eq_none', Option.filter_eq_none,
+          List.head?_eq_none_iff, Option.mem_def, decide_eq_true_eq, not_lt] at h₂
+        rcases h₂ with (h₂|h₂)
+        · aesop
+        · split_ifs with h₃
+          · rcases s with (⟨⟩|⟨hd,tl⟩)
+            · aesop
+            · exfalso
+              simp only [List.head?_cons, Option.some.injEq, forall_eq', List.length_cons,
+                List.all_eq_true, decide_eq_true_eq] at h₂ h₃
+              have := h₃.2 hd (by rw [List.take_cons (ZMod.val_pos.mpr h₁)]; exact List.mem_cons_self)
+              apply Nat.le_lt_asymm h₂ this
+          · simp only [List.all_eq_true, decide_eq_true_eq, not_and, not_forall, Classical.not_imp,
+              not_lt, Sum.inl.injEq, Prod.mk.injEq, and_true, Sum.isRight_inl, Bool.false_eq_true,
+              or_false] at h₃ ⊢
+            rcases s with (⟨⟩|⟨hd,tl⟩)
             · simp
-            · simp at h ⊢
-              rw [List.dropWhileN_cons_of_pos _ _ _ (ZMod.val_pos.mpr hnz)]
-              simp [not_lt_of_ge h]
-    · simpa
-  · simp only [List.length_takeWhileN, List.all_eq_true, decide_eq_true_eq, Int.cast_ofNat,
-      List.nil_append, List.map_take, reduceCtorEq, and_false, ite_self, Sum.isRight_inr,
-      if_false_left, not_le, and_true]
-    apply lt_of_lt_of_le hlt
-    exact Nat.le_mul_of_pos_left c (Nat.zero_lt_succ _)
+            · simp only [List.head?_cons, Option.some.injEq, forall_eq', List.length_cons,
+                exists_prop, List.tail_cons] at h₂ h₃ ⊢
+              rw [List.dropWhileN_cons_of_pos _ _ _ (ZMod.val_pos.mpr h₁)]
+              simp [not_lt_of_ge h₂]
+    · aesop
+  · aesop
 
 aegis_spec "core::array::ArraySerde<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>::deserialize" :=
-  fun m _ gas a _ gas' ρ =>
-  let c := m.costs id!"core::array::deserialize_array_helper::<core::integer::u64, core::serde::into_felt252_based::SerdeImpl::<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>"
+  fun _ _ _ a _ _ ρ =>
   if h : a = [] then ρ = .inl ([], .inr ())
   else
     let length := (a.head h).val
     let data := a.tail
-    if min length (data.takeWhile (·.val < U64_MOD)).length * c + c ≤ gas then
-      if length ≤ data.length ∧ ∀ x ∈ data.take length, ZMod.val x < U64_MOD then
-        gas' = gas - (length + 1) * c
-        ∧ ρ = .inl (data.drop length, .inl ((data.take length).map (fun x => .ofNat _ x.val)))
-      else ρ = .inl ((data.dropWhileN (·.val < U64_MOD) length).tail, .inr ())
-    else ρ.isRight
+    (if length ≤ data.length ∧ ∀ x ∈ data.take length, ZMod.val x < U64_MOD then
+        ρ = .inl (data.drop length, .inl ((data.take length).map (fun x => .ofNat _ x.val)))
+      else ρ = .inl ((data.dropWhileN (·.val < U64_MOD) length).tail, .inr ())) ∨
+      ρ.isRight
 
 aegis_prove "core::array::ArraySerde<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>::deserialize" :=
   fun m _ gas a _ gas' ρ => by
   unfold_spec "core::array::ArraySerde<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>::deserialize"
-  generalize Metadata.costs m id!"core::array::deserialize_array_helper<core::integer::u64, core::serde::into_felt252_based::SerdeImpl<core::integer::u64, core::integer::u64Copy, core::integer::U64IntoFelt252, core::integer::Felt252TryIntoU64>, core::integer::u64Drop>" = c
-  rintro ⟨_,_,_,_,_,_,h₁,h₂⟩
+  rintro ⟨_,_,_,_,_,h₁,h₂⟩
   rcases h₁ with (⟨h₁,rfl,rfl⟩|⟨rfl,rfl,rfl⟩)
   · rcases a with (_|⟨hda,tla⟩); simp at h₁
     aesop (add simp [add_mul])
@@ -572,81 +464,40 @@ aegis_prove "core::array::ArraySerde<core::integer::u64, core::serde::into_felt2
     simp
 
 aegis_spec "core::array::serialize_array_helper<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>" :=
-  fun m _ gas data str _ gas' ρ =>
-  let c := m.costs id!"core::array::serialize_array_helper<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>"
-    if (data.length + 1) * c ≤ gas then
-    gas' = gas - (data.length + 1) * c ∧ ρ = .inl (str ++ data.map Sierra.UInt128.toFelt, ())
-  else ρ.isRight
+  fun _ _ _ data str _ _ ρ =>
+  ρ = .inl (str ++ data.map Sierra.UInt128.toFelt, ()) ∨
+    ρ.isRight
 
 aegis_prove "core::array::serialize_array_helper<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>" :=
   fun m _ gas data str _ gas' ρ => by
   unfold_spec "core::array::serialize_array_helper<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>"
-  sierra_simp'
-  generalize m.costs id!"core::array::serialize_array_helper<core::integer::u128,core::serde::into_felt252_based::SerdeImpl<core::integer::u128,core::integer::u128Copy,core::integer::U128IntoFelt252,core::integer::Felt252TryIntoU128>,core::integer::u128Drop>" = c
-  rintro (⟨_,_,hle,h,h'⟩|⟨h,rfl⟩)
-  · rw [← List.length_pos_iff] at h
-    rcases h with (⟨h,rfl,rfl⟩|⟨rfl,rfl,rfl⟩)
-    · rcases h' with (⟨a,b,_,h₁,h₂,h₃⟩|h')
-      · cases h₁
-        split_ifs at h₂ with hle'
-        · rcases h₂ with ⟨rfl,rfl⟩
-          have : (data.length + 1) * c ≤ gas := by
-            have := Nat.add_le_add_right hle' c
-            simp only [Nat.sub_add_cancel hle, List.length_tail, ge_iff_le, Nat.sub_add_cancel h] at this
-            linarith
-          simp only [List.map_tail, List.append_assoc, List.singleton_append, Sum.inl.injEq,
-            ge_iff_le, List.length_tail, tsub_le_iff_right, exists_and_left, exists_and_right,
-            exists_eq_left, Prod.mk.injEq, and_true, exists_const, false_and, or_false] at h₃
-          rcases h₃ with ⟨rfl,rfl⟩
-          simp only [this, ge_iff_le, tsub_le_iff_right, Sum.inl.injEq, Prod.mk.injEq,
-            List.append_cancel_left_eq, and_true, Sum.isRight_inl, ite_true, Nat.sub_add_cancel h]
-          constructor
-          · rw [add_mul, one_mul, add_comm, Nat.sub_sub]
-          · cases data
-            · simp at h
-            · simp
-        · have : ¬ (data.length + 1) * c ≤ gas := by
-            rw [not_le] at hle' ⊢
-            have := Nat.add_lt_add_right hle' c
-            simp only [Nat.sub_add_cancel hle, List.length_tail, ge_iff_le, Nat.sub_add_cancel h] at this
-            linarith
-          simp only [List.length_cons, this, ge_iff_le, ite_false]
-          aesop
-      · aesop
-    · aesop
-  · aesop (add simp [Nat.add_mul], safe apply [Nat.lt_add_left])
+  aesop
 
 aegis_spec "core::array::ArraySerde<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>::serialize" :=
-    fun m _ gas data str _ gas' ρ =>
-  let c := m.costs id!"core::array::serialize_array_helper<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>"
-  if (data.length + 1) * c ≤ gas then
-    gas' = gas - (data.length + 1) * c ∧ ρ = .inl (str ++ [(data.length : Sierra.UInt32).toFelt] ++ data.map Sierra.UInt128.toFelt, ())
-  else ρ.isRight
+  fun _ _ _ data str _ _ ρ =>
+  ρ = .inl (str ++ [(data.length : Sierra.UInt32).toFelt] ++ data.map Sierra.UInt128.toFelt, ()) ∨
+    ρ.isRight
 
 aegis_prove "core::array::ArraySerde<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>::serialize" :=
   fun m _ gas data str _ gas' ρ => by
   unfold_spec "core::array::ArraySerde<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>::serialize"
-  aesop (add simp [List.head!_eq_head?, List.head?_eq_head, Option.iget_some])
+  aesop
 
 aegis_spec "core::array::ArraySerde<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>::deserialize" :=
-  fun m _ gas a _ gas' ρ =>
-  let c := m.costs id!"core::array::deserialize_array_helper::<core::integer::u128, core::serde::into_felt252_based::SerdeImpl::<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>"
+  fun _ _ _ a _ _ ρ =>
   if h : a = [] then ρ = .inl ([], .inr ())
   else
     let length := (a.head h).val
     let data := a.tail
-    if min length (data.takeWhile (·.val < U128_MOD)).length * c + c ≤ gas then
-      if length ≤ data.length ∧ ∀ x ∈ data.take length, ZMod.val x < U128_MOD then
-        gas' = gas - (length + 1) * c
-        ∧ ρ = .inl (data.drop length, .inl ((data.take length).map ZMod.cast))
-      else ρ = .inl ((data.dropWhileN (·.val < U128_MOD) length).tail, .inr ())
-    else ρ.isRight
+    (if length ≤ data.length ∧ ∀ x ∈ data.take length, ZMod.val x < U128_MOD then
+        ρ = .inl (data.drop length, .inl ((data.take length).map ZMod.cast))
+      else ρ = .inl ((data.dropWhileN (·.val < U128_MOD) length).tail, .inr ())) ∨
+      ρ.isRight
 
 aegis_prove "core::array::ArraySerde<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>::deserialize" :=
   fun m _ gas a _ gas' ρ => by
   unfold_spec "core::array::ArraySerde<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>::deserialize"
-  generalize Metadata.costs m id!"core::array::deserialize_array_helper<core::integer::u128, core::serde::into_felt252_based::SerdeImpl<core::integer::u128, core::integer::u128Copy, core::integer::U128IntoFelt252, core::integer::Felt252TryIntoU128>, core::integer::u128Drop>" = c
-  rintro ⟨_,_,_,_,_,_,h₁,h₂⟩
+  rintro ⟨_,_,_,_,_,h₁,h₂⟩
   rcases h₁ with (⟨h₁,rfl,rfl⟩|⟨rfl,rfl,rfl⟩)
   · rcases a with (_|⟨hda,tla⟩); simp at h₁
     aesop (add simp [add_mul])

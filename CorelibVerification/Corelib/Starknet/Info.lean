@@ -3,6 +3,24 @@ import CorelibVerification.Corelib.Integer
 
 namespace Sierra
 
+aegis_spec "core::box::BoxDeref<core::starknet::info::v2::ExecutionInfo>::deref" :=
+  fun m a ρ =>
+  .some ρ = (m.boxHeap SierraType.V2ExecutionInfo a)
+
+aegis_prove "core::box::BoxDeref<core::starknet::info::v2::ExecutionInfo>::deref" :=
+  fun m a ρ => by
+  unfold_spec "core::box::BoxDeref<core::starknet::info::v2::ExecutionInfo>::deref"
+  aesop
+
+aegis_spec "core::box::BoxDeref<core::starknet::info::BlockInfo>::deref" :=
+  fun m a ρ =>
+  .some ρ = (m.boxHeap SierraType.BlockInfo a)
+
+aegis_prove "core::box::BoxDeref<core::starknet::info::BlockInfo>::deref" :=
+  fun m a ρ => by
+  unfold_spec "core::box::BoxDeref<core::starknet::info::BlockInfo>::deref"
+  aesop
+
 aegis_spec "core::starknet::info::get_execution_info" :=
   fun m _ s _ s' ρ =>
   s = s' ∧
@@ -87,7 +105,7 @@ aegis_prove "core::starknet::info::get_contract_address" :=
   rintro ⟨_,_,_,_,_,_,_,_,_,_,rfl,(⟨_,_,_,rfl,h₃,_,_⟩|h₁),h₂⟩
   · simp only [Sum.inl.injEq, reduceCtorEq, false_and, or_false] at h₂
     rcases h₂ with ⟨rfl,h₂,rfl,rfl,rfl⟩
-    rw [h₂] at h₃
+    rw [← h₂] at h₃
     cases h₃
     exact ⟨rfl, .inl rfl⟩
   · aesop
@@ -102,6 +120,8 @@ aegis_prove "core::starknet::info::get_block_timestamp" :=
   rintro ⟨_,_,_,_,_,_,_,_,rfl,(⟨rbi,h₁,rfl⟩|h₁),h₂⟩
   · simp only [Sum.inl.injEq, reduceCtorEq, false_and, or_false] at h₂
     rcases h₂ with ⟨rfl,h₂,rfl,rfl,rfl⟩
-    cases h₂.symm.trans h₁
+    cases h₂.trans h₁
     exact ⟨rfl, .inl rfl⟩
   · aesop
+
+end Sierra

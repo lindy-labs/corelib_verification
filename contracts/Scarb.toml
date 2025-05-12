@@ -3,7 +3,11 @@ name = "corelib_verification"
 version = "0.1.0"
 
 [dependencies]
-starknet = "2.3.1"
+starknet = "2.11.4"
+
+[cairo]
+inlining-strategy = "avoid"
 
 [lib]
 sierra-text = true
+inlining-strategy = "avoid"

@@ -31,17 +31,6 @@ aegis_prove "core::integer::U128MulGuaranteeDestruct::destruct" :=
    fun _ _ _ _ _ =>
    True.intro
 
-aegis_spec "core::result::ResultTraitImpl<core::integer::u8, core::integer::u8>::expect<core::integer::u8Drop>" :=
-  fun _ a b ρ =>
-  ρ = Sum.map id (fun _ => ((), [b])) a
-
-aegis_prove "core::result::ResultTraitImpl<core::integer::u8, core::integer::u8>::expect<core::integer::u8Drop>" :=
-  fun _ a b ρ => by
-  unfold_spec "core::result::ResultTraitImpl<core::integer::u8, core::integer::u8>::expect<core::integer::u8Drop>"
-  rintro ⟨_, _, _, _, (⟨rfl, rfl⟩|⟨h⟩)⟩
-  · aesop
-  · aesop
-
 aegis_spec "core::integer::U8Sub::sub" :=
   fun _ _ a b _ ρ =>
   ¬ BitVec.usubOverflow a b ∧ ρ = .inl (a - b) ∨
@@ -124,51 +113,6 @@ aegis_prove "core::integer::u128_checked_mul" :=
       omega
     · rfl
 
-aegis_spec "core::option::OptionTraitImpl<core::integer::u8>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::integer::u8>::expect" :=
-  fun _ a b ρ => by
-  unfold_spec "core::option::OptionTraitImpl<core::integer::u8>::expect"
-  aesop
-
-aegis_spec "core::option::OptionTraitImpl<core::integer::u16>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::integer::u16>::expect" :=
-  fun _ a b ρ => by
-  unfold_spec "core::option::OptionTraitImpl<core::integer::u16>::expect"
-  aesop
-
-aegis_spec "core::option::OptionTraitImpl<core::integer::u32>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::integer::u32>::expect" :=
-  fun _ a b ρ => by
-  unfold_spec "core::option::OptionTraitImpl<core::integer::u32>::expect"
-  aesop
-
-aegis_spec "core::option::OptionTraitImpl<core::integer::u64>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::integer::u64>::expect" :=
-  fun _ a b ρ => by
-  unfold_spec "core::option::OptionTraitImpl<core::integer::u64>::expect"
-  aesop
-
-aegis_spec "core::option::OptionTraitImpl<core::integer::u128>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::integer::u128>::expect" :=
-  fun _ a b ρ => by
-  unfold_spec "core::option::OptionTraitImpl<core::integer::u128>::expect"
-  aesop
-
 aegis_spec "core::integer::DowncastableIntTryInto::<core::integer::u16, core::integer::u8, core::integer::DowncastableU16, core::integer::DowncastableU8, _>::try_into" :=
   fun _ _ a _ ρ =>
   a.toNat < U8_MOD ∧ ρ = .inl (a.truncate 8) ∨
@@ -217,20 +161,8 @@ aegis_spec "core::integer::U8Mul::mul" :=
 aegis_prove "core::integer::U8Mul::mul" := fun _ _ a b _ ρ => by
   unfold_spec "core::integer::U8Mul::mul"
   have := Nat.mul_lt_mul'' a.isLt b.isLt
-  intro h_auto
-  simp_all only [Nat.reducePow, Nat.reduceMul, BitVec.truncate_eq_setWidth, BitVec.toNat_mul, BitVec.toNat_setWidth,
-    Nat.mul_mod_mod, Nat.mod_mul_mod, Nat.mod_eq_of_lt, U8_MOD, Int.cast_ofNat, Sum.exists, Sum.inl.injEq,
-    reduceCtorEq, and_false, or_false, Sum.map_inl, id_eq, existsAndEq, and_true, false_or, Sum.map_inr, exists_const]
-  cases h_auto with
-  | inl h =>
-    simp_all only [true_and]
-    obtain ⟨_, rfl⟩ := h
-    simp_all only [Sum.inl.injEq, Sum.isRight_inl, Bool.false_eq_true, and_false, or_false]
-    bv_decide
-  | inr h_1 =>
-    simp_all only [true_and]
-    obtain ⟨_, rfl⟩ := h_1
-    simp_all only [reduceCtorEq, and_false, Sum.isRight_inr, or_true]
+  aesop (config := { warnOnNonterminal := .false }) (add simp [Nat.mod_eq_of_lt])
+  bv_decide
 
 aegis_spec "core::integer::U16Mul::mul" :=
   fun _ _ a b _ ρ =>
@@ -240,20 +172,8 @@ aegis_spec "core::integer::U16Mul::mul" :=
 aegis_prove "core::integer::U16Mul::mul" := fun _ _ a b _ ρ => by
   unfold_spec "core::integer::U16Mul::mul"
   have := Nat.mul_lt_mul'' a.isLt b.isLt
-  intro h_auto
-  simp_all only [Nat.reducePow, Nat.reduceMul, BitVec.truncate_eq_setWidth, BitVec.toNat_mul, BitVec.toNat_setWidth,
-    Nat.mul_mod_mod, Nat.mod_mul_mod, Nat.mod_eq_of_lt, Int.cast_ofNat, Sum.exists, Sum.inl.injEq, reduceCtorEq,
-    and_false, or_false, Sum.map_inl, id_eq, existsAndEq, and_true, false_or, Sum.map_inr, exists_const]
-  cases h_auto with
-  | inl h =>
-    simp_all only [true_and]
-    rcases h.2
-    simp_all only [Sum.inl.injEq, Sum.isRight_inl, Bool.false_eq_true, and_false, or_false]
-    bv_decide
-  | inr h_1 =>
-    simp_all only [true_and]
-    rcases h_1.2
-    simp_all only [reduceCtorEq, and_false, Sum.isRight_inr, or_true]
+  aesop (config := { warnOnNonterminal := .false }) (add simp [Nat.mod_eq_of_lt])
+  bv_decide
 
 aegis_spec "core::integer::U32Mul::mul" :=
   fun _ _ a b _ ρ =>
@@ -263,20 +183,8 @@ aegis_spec "core::integer::U32Mul::mul" :=
 aegis_prove "core::integer::U32Mul::mul" := fun _ _ a b _ ρ => by
   unfold_spec "core::integer::U32Mul::mul"
   have := Nat.mul_lt_mul'' a.isLt b.isLt
-  intro h_auto
-  simp_all only [Nat.reducePow, Nat.reduceMul, BitVec.truncate_eq_setWidth, BitVec.toNat_mul, BitVec.toNat_setWidth,
-    Nat.mul_mod_mod, Nat.mod_mul_mod, Nat.mod_eq_of_lt, Int.cast_ofNat, Sum.exists, Sum.inl.injEq, reduceCtorEq,
-    and_false, or_false, Sum.map_inl, id_eq, existsAndEq, and_true, false_or, Sum.map_inr, exists_const]
-  cases h_auto with
-  | inl h =>
-    simp_all only [true_and]
-    rcases h.2
-    simp_all only [Sum.inl.injEq, Sum.isRight_inl, Bool.false_eq_true, and_false, or_false]
-    bv_decide
-  | inr h_1 =>
-    simp_all only [true_and]
-    rcases h_1.2
-    simp_all only [reduceCtorEq, and_false, Sum.isRight_inr, or_true]
+  aesop (config := { warnOnNonterminal := .false }) (add simp [Nat.mod_eq_of_lt])
+  bv_decide
 
 aegis_spec "core::integer::U64Mul::mul" :=
   fun _ _ a b _ ρ =>
@@ -286,20 +194,8 @@ aegis_spec "core::integer::U64Mul::mul" :=
 aegis_prove "core::integer::U64Mul::mul" := fun _ _ a b _ ρ => by
   unfold_spec "core::integer::U64Mul::mul"
   have := Nat.mul_lt_mul'' a.isLt b.isLt
-  intro h_auto
-  simp_all only [Nat.reducePow, Nat.reduceMul, BitVec.truncate_eq_setWidth, BitVec.toNat_mul, BitVec.toNat_setWidth,
-    Nat.mul_mod_mod, Nat.mod_mul_mod, Nat.mod_eq_of_lt, Int.cast_ofNat, Sum.exists, Sum.inl.injEq, reduceCtorEq,
-    and_false, or_false, Sum.map_inl, id_eq, existsAndEq, and_true, false_or, Sum.map_inr, exists_const]
-  cases h_auto with
-  | inl h =>
-    simp_all only [true_and]
-    rcases h.2
-    simp_all only [Sum.inl.injEq, Sum.isRight_inl, Bool.false_eq_true, and_false, or_false]
-    bv_decide
-  | inr h_1 =>
-    simp_all only [true_and]
-    rcases h_1.2
-    simp_all only [reduceCtorEq, and_false, Sum.isRight_inr, or_true]
+  aesop (config := { warnOnNonterminal := .false }) (add simp [Nat.mod_eq_of_lt])
+  bv_decide
 
 aegis_spec "core::integer::U128Mul::mul" :=
   fun _ _ a b _ ρ =>
@@ -308,24 +204,6 @@ aegis_spec "core::integer::U128Mul::mul" :=
 
 aegis_prove "core::integer::U128Mul::mul" := fun _ _ a b _ ρ => by
   unfold_spec "core::integer::U128Mul::mul"
-  aesop
-
-aegis_spec "core::result::ResultTraitImpl<core::integer::u16, core::integer::u16>::expect<core::integer::u16Drop>" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::result::ResultTraitImpl<core::integer::u16, core::integer::u16>::expect<core::integer::u16Drop>" :=
-  fun _ a err ρ => by
-  unfold_spec "core::result::ResultTraitImpl<core::integer::u16, core::integer::u16>::expect<core::integer::u16Drop>"
-  aesop
-
-aegis_spec "core::result::ResultTraitImpl<core::integer::u128, core::integer::u128>::expect<core::integer::u128Drop>" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::result::ResultTraitImpl<core::integer::u128, core::integer::u128>::expect<core::integer::u128Drop>" :=
-  fun _ a err ρ => by
-  unfold_spec "core::result::ResultTraitImpl<core::integer::u128, core::integer::u128>::expect<core::integer::u128Drop>"
   aesop
 
 aegis_spec "core::integer::U128Sub::sub" :=
@@ -348,23 +226,19 @@ aegis_prove "core::integer::u128_try_from_felt252" :=
   unfold_spec "core::integer::u128_try_from_felt252"
   aesop
 
-aegis_spec "core::integer::BoundedU128::max" :=
-  fun _ ρ =>
-  ρ = 340282366920938463463374607431768211455
+aegis_spec "core::integer::bitnot_impls::Impl::<core::integer::u128, 340282366920938463463374607431768211455, 340282366920938463463374607431768211455>::bitnot" :=
+  fun _ a ρ =>
+  ρ = ~~~a
 
-aegis_prove "core::integer::BoundedU128::max" :=
-  fun _ ρ => by
+aegis_prove "core::integer::bitnot_impls::Impl::<core::integer::u128, 340282366920938463463374607431768211455, 340282366920938463463374607431768211455>::bitnot" :=
+  fun _ a ρ => by
+  unfold_spec "core::integer::bitnot_impls::Impl::<core::integer::u128, 340282366920938463463374607431768211455, 340282366920938463463374607431768211455>::bitnot"
   rintro rfl
-  rfl
-
-aegis_spec "core::integer::U128BitNot::bitnot" :=
-  fun _ _ a _ ρ =>
-  ρ = .inl (~~~ a)
-
-aegis_prove "core::integer::U128BitNot::bitnot" :=
-  fun _ _ a _ ρ => by
-  unfold_spec "core::integer::U128BitNot::bitnot"
-  aesop (add safe (by bv_decide))
+  rw [ZMod.val_sub (by rw [← Nat.cast_le (α := ℤ), ZMod.val_intCast, ZMod.val_natCast];
+                           have := a.isLt; simp [PRIME] at *; omega)]
+  simp only [Int.cast_ofNat, ZMod.val_natCast, BitVec.natCast_eq_ofNat]
+  rw [ZMod.val_ofNat_of_lt (by simp [PRIME]), Nat.mod_eq_of_lt (lt_trans a.isLt (by simp [PRIME]))]
+  bv_omega
 
 aegis_spec "core::integer::u8_try_as_non_zero" :=
   fun _ a ρ =>
@@ -629,42 +503,6 @@ aegis_prove "core::integer::U64Sub::sub" :=
    unfold_spec "core::integer::U64Sub::sub"
    aesop
 
-aegis_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u8>>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u8>>::expect" :=
-  fun _ a err ρ => by
-  unfold_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u8>>::expect"
-  aesop
-
-aegis_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u16>>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u16>>::expect" :=
-  fun _ a err ρ => by
-  unfold_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u16>>::expect"
-  aesop
-
-aegis_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u32>>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u32>>::expect" :=
-  fun _ a err ρ => by
-  unfold_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u32>>::expect"
-  aesop
-
-aegis_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u64>>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u64>>::expect" :=
-  fun _ a err ρ => by
-  unfold_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u64>>::expect"
-  aesop
-
 aegis_spec "core::integer::u8_as_non_zero" :=
   fun _ a ρ =>
   a ≠ 0 ∧ ρ = .inl a ∨
@@ -810,15 +648,6 @@ aegis_prove "core::integer::by_div_rem::DivImpl::<core::integer::u64, core::inte
   unfold_spec "core::integer::by_div_rem::DivImpl::<core::integer::u64, core::integer::U64DivRem, core::integer::U64TryIntoNonZero, core::integer::u64Drop>::div"
   aesop
 
-aegis_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u128>>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u128>>::expect" :=
-  fun _ a err ρ => by
-  unfold_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u128>>::expect"
-  aesop
-
 aegis_spec "core::integer::by_div_rem::DivImpl::<core::integer::u128, core::integer::U128DivRem, core::integer::U128TryIntoNonZero, core::integer::u128Drop>::div" :=
   fun _ _ a b _ ρ =>
   b ≠ 0 ∧ ρ = .inl (a.udiv b) ∨
@@ -858,17 +687,6 @@ aegis_spec "core::integer::u256_checked_add" :=
 aegis_prove "core::integer::u256_checked_add" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ Unit) => by
   unfold_spec "core::integer::u256_checked_add"
-  rintro ⟨_,_,_,_,he,(⟨h,rfl⟩|h)⟩
-  · aesop
-  · aesop
-
-aegis_spec "core::option::OptionTraitImpl<core::integer::u256>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::integer::u256>::expect" :=
-  fun _ a err ρ => by
-  unfold_spec  "core::option::OptionTraitImpl<core::integer::u256>::expect"
   aesop
 
 aegis_spec "core::integer::U256Add::add" :=
@@ -881,13 +699,13 @@ aegis_prove "core::integer::U256Add::add" :=
   unfold_spec "core::integer::U256Add::add"
   aesop
 
-aegis_spec "core::integer::u256_overflow_sub" :=
+aegis_spec "core::integer::u256_overflowing_sub" :=
   fun _ _ (a b : UInt256) _ ρ =>
   ρ = (a - b, Bool.toSierraBool (a.toNat < b.toNat))
 
-aegis_prove "core::integer::u256_overflow_sub" :=
+aegis_prove "core::integer::u256_overflowing_sub" :=
   fun _ _ (a b : UInt256) _ ρ => by
-  unfold_spec  "core::integer::u256_overflow_sub"
+  unfold_spec  "core::integer::u256_overflowing_sub"
   aesop (add simp [UInt256.pair_toNat, U128_MOD])
     (config := { warnOnNonterminal := .false })
     <;> omega  -- TODO inline `omega` application into `aesop`
@@ -900,9 +718,7 @@ aegis_spec "core::integer::u256_checked_sub" :=
 aegis_prove "core::integer::u256_checked_sub" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ Unit) => by
   unfold_spec "core::integer::u256_checked_sub"
-  rintro ⟨_,_,_,_,he,(⟨h,rfl⟩|h)⟩
-  · aesop
-  · aesop
+  aesop
 
 aegis_spec "core::integer::U256Sub::sub" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ _) =>
@@ -933,15 +749,6 @@ aegis_prove "core::integer::U128PartialEq::ne" :=
   rintro rfl
   simp_all
 
-aegis_spec "core::integer::U128PartialOrd::gt" :=
-  fun _ _ a b _ ρ =>
-  ρ = Bool.toSierraBool (b < a)
-
-aegis_prove "core::integer::U128PartialOrd::gt" :=
-  fun _ _ a b _ ρ => by
-  unfold_spec "core::integer::U128PartialOrd::gt"
-  aesop
-
 aegis_spec "core::integer::U128PartialOrd::lt" :=
   fun _ _ a b _ ρ =>
   ρ = Bool.toSierraBool (a < b)
@@ -951,22 +758,31 @@ aegis_prove "core::integer::U128PartialOrd::lt" :=
   unfold_spec "core::integer::U128PartialOrd::lt"
   aesop
 
+aegis_spec "core::integer::U128PartialOrd::gt" :=
+  fun _ _ a b _ ρ =>
+  ρ = Bool.toSierraBool (b < a)
+
+aegis_prove "core::integer::U128PartialOrd::gt" :=
+  fun _ _ a b _ ρ => by
+  unfold_spec "core::integer::U128PartialOrd::gt"
+  aesop
+
 theorem U128_MOD_mul_U128_MOD : U128_MOD * U128_MOD = U256_MOD := rfl
 
 theorem U256_MOD_div_U128_MOD : U256_MOD / U128_MOD = U128_MOD := rfl
 
 theorem U128_MOD_pos : 0 < U128_MOD := by norm_num [U128_MOD]
 
-aegis_spec "core::integer::u256_overflow_mul" :=
+aegis_spec "core::integer::u256_overflowing_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) =>
   ρ = (a * b, Bool.toSierraBool (U256_MOD ≤ a.toNat * b.toNat))
 
 -- TODO: Come back to this when we have `BitVec.umulOverflow`.
-aegis_prove "core::integer::u256_overflow_mul" :=
+aegis_prove "core::integer::u256_overflowing_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) => by
   rcases a with ⟨aₗ, aₕ⟩
   rcases b with ⟨bₗ, bₕ⟩
-  unfold_spec "core::integer::u256_overflow_mul"
+  unfold_spec "core::integer::u256_overflowing_mul"
   rintro ⟨_,_,_,_,_,_,_,_,h⟩
   rcases h with ⟨_,_,_,_,_,_,_,_,h₁,h₂,h₃,h₄,h₅,h⟩
   cases h₁
@@ -1050,15 +866,6 @@ aegis_spec "core::integer::u256_safe_div_rem" :=
 aegis_prove "core::integer::u256_safe_div_rem" :=
   fun _ _ (a b : UInt256) _ ρ => by
   unfold_spec "core::integer::u256_safe_div_rem"
-  aesop
-
-aegis_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u256>>::expect" :=
-  fun _ a err ρ =>
-  ρ = a.map id (fun _ => ((), [err]))
-
-aegis_prove "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u256>>::expect" :=
-  fun _ a err ρ => by
-  unfold_spec "core::option::OptionTraitImpl<core::zeroable::NonZero<core::integer::u256>>::expect"
   aesop
 
 aegis_spec "core::integer::U256DivRem::div_rem" :=

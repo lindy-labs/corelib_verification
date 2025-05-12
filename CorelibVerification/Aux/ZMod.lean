@@ -166,3 +166,7 @@ theorem ZMod.val_sub_one {m : ℕ} [NeZero m] [Fact (1 < m)] {a : ZMod m} (h : a
     (a - 1).val = a.val - 1 := by
   rw [val_sub (by rw [val_one]; refine Nat.one_le_iff_ne_zero.mpr ?_; exact (val_ne_zero a).mpr h)]
   rw [val_one]
+
+theorem ZMod.val_ne_zero_of_ne_zero {m : ℕ} [NeZero m] {a : ZMod m} (h : ¬ a = 0) :
+    a.val ≠ 0 := by
+  rwa [ZMod.val_ne_zero]
