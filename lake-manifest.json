@@ -5,7 +5,7 @@
    "type": "git",
    "subDir": null,
    "scope": "",
-   "rev": "a89e85aacfac01d16f10b7c2c40f4511c5a22bdb",
+   "rev": "fd5240f6f5c2972d2e56f7585ec62ae5182d0156",
    "name": "aegis",
    "manifestFile": "lake-manifest.json",
    "inputRev": "main",
