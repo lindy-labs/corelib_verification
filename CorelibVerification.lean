@@ -1,6 +1,7 @@
 import CorelibVerification.Corelib.Array
 import CorelibVerification.Corelib.Hash
 import CorelibVerification.Corelib.Integer
+import CorelibVerification.Corelib.Integer.Zeroable
 import CorelibVerification.Corelib.Lib
 import CorelibVerification.Corelib.Result
 import CorelibVerification.Corelib.Serde

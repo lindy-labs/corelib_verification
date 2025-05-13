@@ -279,4 +279,7 @@ fn main(contract_address : ContractAddress,
     let _x: u128 = 0_u128.into();
     //core::traits::PartialEqSnap<core::integer::u128, core::integer::U128PartialEq>::eq
     let _x: bool = (@0_u128 == @0_u128);
+    //consts of NonZero
+    let _x: NonZero<u128> = 23;
+    let _x: bool = (_x == 24);
 }
