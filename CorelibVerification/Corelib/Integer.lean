@@ -234,11 +234,8 @@ aegis_prove "core::integer::bitnot_impls::Impl::<core::integer::u128, 3402823669
   fun _ a ρ => by
   unfold_spec "core::integer::bitnot_impls::Impl::<core::integer::u128, 340282366920938463463374607431768211455, 340282366920938463463374607431768211455>::bitnot"
   rintro rfl
-  rw [ZMod.val_sub (by rw [← Nat.cast_le (α := ℤ), ZMod.val_intCast, ZMod.val_natCast];
-                           have := a.isLt; simp [PRIME] at *; omega)]
-  simp only [Int.cast_ofNat, ZMod.val_natCast, BitVec.natCast_eq_ofNat]
-  rw [ZMod.val_ofNat_of_lt (by simp [PRIME]), Nat.mod_eq_of_lt (lt_trans a.isLt (by simp [PRIME]))]
-  bv_omega
+  aesop (config := { warnOnNonterminal := .false })
+  bv_decide
 
 aegis_spec "core::integer::u8_try_as_non_zero" :=
   fun _ a ρ =>
