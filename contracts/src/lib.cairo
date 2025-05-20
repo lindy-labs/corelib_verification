@@ -1,35 +1,43 @@
-use core::option::OptionTrait;
-use core::traits::TryInto;
-use debug::PrintTrait;
-use core::result::Result;
+use core::byte_array::ByteArray;
+use core::bytes_31::bytes31;
 use core::integer;
-use starknet::{Store, StorageBaseAddress, StorageAddress, SyscallResult, SyscallResultTrait};
+use core::integer::{i128, u128, u256, u32};
+use core::option::OptionTrait;
+use core::result::{Result, ResultTrait};
+use core::traits::{Into, TryInto};
+use debug::PrintTrait;
 use starknet::contract_address::{ContractAddress, ContractAddressSerde};
 use starknet::info::ExecutionInfo;
 use starknet::syscalls::{storage_read_syscall, storage_write_syscall};
+use starknet::{StorageAddress, StorageBaseAddress, Store, SyscallResult, SyscallResultTrait};
 
-fn main(contract_address : ContractAddress,
-  syscall_result_contract_address : SyscallResult<ContractAddress>,
-  syscall_result_u8 : SyscallResult<u8>,
-  syscall_result_u128 : SyscallResult<u128>,
-  syscall_result_unit : SyscallResult<()>,
-  syscall_result_box_execution_info : SyscallResult<Box<ExecutionInfo>>,
-  syscall_result_span_felt252 : SyscallResult<Span<felt252>>,
-  syscall_result_u256 : SyscallResult<u256>,
-  syscall_result_felt252 : SyscallResult<felt252>,
-  syscall_result_bool : SyscallResult<bool>,
-  storage_base_address : StorageBaseAddress,
-  storage_address : StorageAddress,
-  ref ref_array_felt252 : Array<felt252>) {
-    //core::result::ResultTraitImpl<core::integer::u32, core::integer::u32>::expect<core::integer::u32Drop>();
-    let _x : Result<u32, u32> = Result::Ok(0_u32);
-    let _x : u32 = _x.expect('foo');
-    //core::result::ResultTraitImpl<core::integer::u64, core::integer::u64>::expect<core::integer::u64Drop>
-    let _x : Result<u64, u64> = Result::Ok(0_u64);
-    let _x : u64 = _x.expect('foo');
-    //core::result::ResultTraitImpl<core::integer::u8, core::integer::u8>::expect<core::integer::u8Drop>
-    let _x : Result<u8, u8> = Result::Ok(0_u8);
-    let _x : u8 = _x.expect('foo');
+fn main(
+    contract_address: ContractAddress,
+    syscall_result_contract_address: SyscallResult<ContractAddress>,
+    syscall_result_u8: SyscallResult<u8>,
+    syscall_result_u128: SyscallResult<u128>,
+    syscall_result_unit: SyscallResult<()>,
+    syscall_result_box_execution_info: SyscallResult<Box<ExecutionInfo>>,
+    syscall_result_span_felt252: SyscallResult<Span<felt252>>,
+    syscall_result_u256: SyscallResult<u256>,
+    syscall_result_felt252: SyscallResult<felt252>,
+    syscall_result_bool: SyscallResult<bool>,
+    storage_base_address: StorageBaseAddress,
+    storage_address: StorageAddress,
+    ref ref_array_felt252: Array<felt252>,
+) {
+    //core::result::ResultTraitImpl<core::integer::u32,
+    //core::integer::u32>::expect<core::integer::u32Drop>();
+    let _x: Result<u32, u32> = Result::Ok(0_u32);
+    let _x: u32 = _x.expect('foo');
+    //core::result::ResultTraitImpl<core::integer::u64,
+    //core::integer::u64>::expect<core::integer::u64Drop>
+    let _x: Result<u64, u64> = Result::Ok(0_u64);
+    let _x: u64 = _x.expect('foo');
+    //core::result::ResultTraitImpl<core::integer::u8,
+    //core::integer::u8>::expect<core::integer::u8Drop>
+    let _x: Result<u8, u8> = Result::Ok(0_u8);
+    let _x: u8 = _x.expect('foo');
     //core::integer::U8Sub::sub
     let _x = 42_u8 - 23_u8;
     //core::integer::u128_checked_mul
@@ -44,9 +52,10 @@ fn main(contract_address : ContractAddress,
     let _x = core::integer::U64Mul::mul(0_u64, 0_u64);
     //core::integer::U128Mul::mul
     let _x = core::integer::U128Mul::mul(0_u128, 0_u128);
-    //core::result::ResultTraitImpl<core::integer::u128, core::integer::u128>::expect<core::integer::u128Drop>
-    let _x : Result<u128, u128> = Result::Ok(0_u128);
-    let _x : u128 = _x.expect('foo');
+    //core::result::ResultTraitImpl<core::integer::u128,
+    //core::integer::u128>::expect<core::integer::u128Drop>
+    let _x: Result<u128, u128> = Result::Ok(0_u128);
+    let _x: u128 = _x.expect('foo');
     //core::integer::U128Sub::sub
     let _x = core::integer::U128Sub::sub(0, 0);
     //core::integer::u128_try_from_felt252
@@ -159,7 +168,8 @@ fn main(contract_address : ContractAddress,
     let _x = core::integer::U256Div::div(0, 0);
     //core::hash::LegacyHashContractAddress::hash
     let _x = core::hash::LegacyHashForHash::hash(0, contract_address);
-    //let _x = core::starknet::contract_address::HashContractAddress::update_state(0, contract_address);
+    //let _x = core::starknet::contract_address::HashContractAddress::update_state(0,
+    //contract_address);
     //core::starknet::contract_address::Felt252TryIntoContractAddress::try_into
     let _x = core::starknet::contract_address::Felt252TryIntoContractAddress::try_into(0);
     //core::starknet::info::get_execution_info
@@ -214,13 +224,22 @@ fn main(contract_address : ContractAddress,
     let _x = core::hash::LegacyHashForHash::hash(0, 0_u32);
     //core::hash::LegacyHashU64::hash
     let _x = core::hash::LegacyHashForHash::hash(0, 0_u64);
-    //core::hash::TupleSize2LegacyHash<core::starknet::contract_address::ContractAddress, core::integer::u64, core::hash::LegacyHashContractAddress, core::hash::LegacyHashU64, core::starknet::contract_address::ContractAddressDrop, core::integer::u64Drop>::hash
+    //core::hash::TupleSize2LegacyHash<core::starknet::contract_address::ContractAddress,
+    //core::integer::u64, core::hash::LegacyHashContractAddress, core::hash::LegacyHashU64,
+    //core::starknet::contract_address::ContractAddressDrop, core::integer::u64Drop>::hash
     let _x = core::hash::LegacyHash::hash(0, (0_u32, 0_u64));
-    //core::hash::TupleSize2LegacyHash<core::starknet::contract_address::ContractAddress, core::integer::u64, core::hash::LegacyHashContractAddress, core::hash::LegacyHashU64, core::starknet::contract_address::ContractAddressDrop, core::integer::u64Drop>::hash
+    //core::hash::TupleSize2LegacyHash<core::starknet::contract_address::ContractAddress,
+    //core::integer::u64, core::hash::LegacyHashContractAddress, core::hash::LegacyHashU64,
+    //core::starknet::contract_address::ContractAddressDrop, core::integer::u64Drop>::hash
     let _x = core::hash::LegacyHash::hash(0, (contract_address, 0_u64));
-    //core::hash::TupleSize2LegacyHash<core::starknet::contract_address::ContractAddress, core::starknet::contract_address::ContractAddress, core::hash::LegacyHashContractAddress, core::hash::LegacyHashContractAddress, core::starknet::contract_address::ContractAddressDrop, core::starknet::contract_address::ContractAddressDrop>::hash
+    //core::hash::TupleSize2LegacyHash<core::starknet::contract_address::ContractAddress,
+    //core::starknet::contract_address::ContractAddress, core::hash::LegacyHashContractAddress,
+    //core::hash::LegacyHashContractAddress, core::starknet::contract_address::ContractAddressDrop,
+    //core::starknet::contract_address::ContractAddressDrop>::hash
     let _x = core::hash::LegacyHash::hash(0, (contract_address, contract_address));
-    //core::hash::TupleSize2LegacyHash<core::integer::u32, core::integer::u32, core::hash::LegacyHashU32, core::hash::LegacyHashU32, core::integer::u32Drop, core::integer::u32Drop>::hash
+    //core::hash::TupleSize2LegacyHash<core::integer::u32, core::integer::u32,
+    //core::hash::LegacyHashU32, core::hash::LegacyHashU32, core::integer::u32Drop,
+    //core::integer::u32Drop>::hash
     let _x = core::hash::LegacyHash::hash(0, (0_u32, 0_u32));
     //core::serde::Felt252Serde::deserialize
     let mut span_felt252: Span<felt252> = ref_array_felt252.span();
@@ -249,10 +268,12 @@ fn main(contract_address : ContractAddress,
     Serde::<u256>::serialize(@0_u256, ref ref_array_felt252);
     //core::integer::u256Serde::deserialize
     let _x = Serde::<u256>::deserialize(ref span_felt252);
-    //core::serde::ArraySerde<core::felt252, core::serde::Felt252Serde, core::felt252Drop>::serialize
+    //core::serde::ArraySerde<core::felt252, core::serde::Felt252Serde,
+    //core::felt252Drop>::serialize
     let x: Array<felt252> = array::array_new();
     Serde::<Array<felt252>>::serialize(@x, ref ref_array_felt252);
-    //core::serde::ArraySerde<core::felt252, core::serde::Felt252Serde, core::felt252Drop>::deserialize
+    //core::serde::ArraySerde<core::felt252, core::serde::Felt252Serde,
+    //core::felt252Drop>::deserialize
     let _x: Option<Array<felt252>> = Serde::<Array<felt252>>::deserialize(ref span_felt252);
     //core::serde::ArraySerde<core::u64, core::serde::U64Serde, core::u64Drop>::serialize
     let x: Array<u64> = array::array_new();
@@ -282,4 +303,89 @@ fn main(contract_address : ContractAddress,
     //consts of NonZero
     let _x: NonZero<u128> = 23;
     let _x: bool = (_x == 24);
+    //core::integer::I128PartialOrd::le
+    let _x: bool = (0_i128 <= 1_i128);
+    //core::integer::I128PartialOrd::gt
+    let _x: bool = (0_i128 > 1_i128);
+    //core::integer::I128PartialOrd::ge
+    let _x: bool = (0_i128 >= 1_i128);
+    //core::integer::I128PartialOrd::lt
+    let _x: bool = (0_i128 < 1_i128);
+    //core::integer::I128PartialEq::eq
+    let _x: bool = (0_i128 == 1_i128);
+    //core::integer::U256PartialOrd::gt
+    let _x: bool = (0_u256 > 1_u256);
+    //core::integer::U32PartialEq::eq
+    let _x: bool = (0_u32 == 1_u32);
+    //core::integer::U32PartialOrd::lt
+    let _x: bool = (0_u32 < 1_u32);
+    //core::assert
+    assert(1_u32 + 1_u32 == 2_u32, 'foo');
+    //core::fmt::FormatterDefault::default
+    let _formatter = core::fmt::FormatterDefault::default();
+
+    // Byte array operations
+    let mut byte_array = core::byte_array::ByteArrayDefault::default();
+    core::byte_array::ByteArrayImpl::append_word(ref byte_array, 0x12345678, 3);
+    core::byte_array::ByteArrayImpl::append_split_index_gt_16(ref byte_array, 32, 0x11);
+    core::byte_array::ByteArrayImpl::append_split_index_lt_16(ref byte_array, 8, 0x22);
+    core::byte_array::ByteArrayImpl::append_split_index_16(ref byte_array, 0x33);
+    core::byte_array::ByteArrayImpl::append_word_fits_into_pending(ref byte_array, 0x44, 4);
+
+    // Proper serialization with output array
+    let mut output = ArrayTrait::<felt252>::new();
+    core::byte_array::ByteArraySerde::serialize(@byte_array, ref output);
+
+    // Bytes31 operations
+    let felt = core::Felt252Default::default();
+    let bytes31_val: bytes31 = core::bytes_31::Felt252TryIntoBytes31::try_into(felt).unwrap();
+    let _shifted = core::bytes_31::one_shift_left_bytes_felt252(5);
+
+    // Felt252 arithmetic
+    let felt1 = core::Felt252Default::default();
+    let felt2 = core::Felt252Default::default();
+    let _sum = core::Felt252Add::add(felt1, felt2);
+    let _prod = core::Felt252Mul::mul(felt1, felt2);
+
+    // Array operations
+    let mut array = core::array::ArrayDefault::<core::bytes_31::bytes31>::default();
+    core::array::ArrayImpl::append(ref array, bytes31_val);
+    let _len = core::array::ArrayImpl::len(@array);
+    let mut span = core::array::ArrayToSpan::span(@array);
+    let _elem = core::array::SpanImpl::pop_front(ref span);
+
+    // Integer operations
+    let mut u32_val = core::integer::U32Default::default();
+    core::ops::arith::DeprecatedAddAssign::add_assign(ref u32_val, 5_u32);
+    let _u256: u256 = core::integer::Felt252IntoU256::into(felt);
+
+    let _x = core::bytes_31::split_u128(0x1234567890ABCDEF, 3);
+    let _shifted_u128 = core::bytes_31::one_shift_left_bytes_u128(8);
+
+    // Result operations
+    let res: core::result::Result<(), core::fmt::Error> = Ok(());
+    core::result::ResultTraitImpl::unwrap(res);
+
+    let res2: core::result::Result<u32, u32> = Ok(5_u32);
+    let _is_ok = core::result::ResultTraitImpl::into_is_ok(res2);
+
+    // Panic operations (commented out as they would abort execution)
+    // let panic_bytes = ByteArray::default();
+    // core::panics::panic_with_byte_array(panic_bytes);
+
+    // Array serialization with SerdeImpl
+    let mut bytes31_output = ArrayTrait::<felt252>::new();
+    core::serde::into_felt252_based::SerdeImpl::<
+        bytes31,
+        core::bytes_31::bytes31Copy,
+        core::bytes_31::Bytes31IntoFelt252,
+        core::bytes_31::Felt252TryIntoBytes31,
+    >::serialize(@bytes31_val, ref bytes31_output);
+
+    // Advanced integer operations
+    let i128_val = core::integer::I128Zero::zero();
+    let neg_i128 = core::integer::I128Neg::neg(i128_val);
+    let sub_i128 = core::integer::I128Sub::sub(neg_i128, 10_i128);
+
+    let _downcast_result = core::integer::DowncastableIntTryInto::<i128, u128>::try_into(sub_i128);
 }

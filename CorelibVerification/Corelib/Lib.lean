@@ -257,3 +257,13 @@ aegis_prove "core::panic_with_const_felt252<6713199>" :=
   fun _ ρ => by
   rintro rfl
   rfl
+
+aegis_spec "core::assert" :=
+  fun _ a err ρ =>
+  a = Bool.toSierraBool .true ∧ ρ = .inl () ∨
+    a = Bool.toSierraBool .false ∧ ρ = .inr ((), [err])
+
+aegis_prove "core::assert" :=
+  fun _ a err ρ => by
+  unfold_spec "core::assert"
+  aesop
