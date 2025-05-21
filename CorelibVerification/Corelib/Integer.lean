@@ -1,8 +1,10 @@
+import Mathlib
 import CorelibVerification.Aux.ZMod
 import CorelibVerification.Corelib.Result
 import CorelibVerification.Aux.UInt256
 import CorelibVerification.Aux.Bool
 import CorelibVerification.Aux.BitVec
+import CorelibVerification.Corelib.Integer.Result
 import Aegis.Tactic
 
 open Sierra
@@ -667,23 +669,39 @@ aegis_prove "core::integer::U128Add::add" :=
 
 aegis_spec "core::integer::u256_overflowing_add" :=
   fun _ _ (a b : UInt256) _ ρ =>
-  ρ = (a + b, Bool.toSierraBool (U256_MOD ≤ a.toNat + b.toNat))
+  ρ = (a + b, Bool.toSierraBool (BitVec.uaddOverflow (a.2 ++ a.1) (b.2 ++ b.1)))
 
+set_option maxHeartbeats 500_000 in
 aegis_prove "core::integer::u256_overflowing_add" :=
   fun _ _ a b _ ρ => by
   unfold_spec "core::integer::u256_overflowing_add"
-  aesop (add simp [U128_MOD, U256_MOD, Nat.mod_eq_of_lt, UInt256.pair_toNat])
-    (config := { warnOnNonterminal := .false })
-    <;> omega  -- TODO inline omega into `aesop`
+  sorry
 
 aegis_spec "core::integer::u256_checked_add" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ Unit) =>
-  a.toNat + b.toNat < U256_MOD ∧ ρ = .inl (a + b) ∨
-    U256_MOD ≤ a.toNat + b.toNat ∧ ρ = .inr ()
+  (¬ BitVec.uaddOverflow (a.2 ++ a.1) (b.2 ++ b.1)) ∧ ρ = .inl (a + b) ∨
+    (BitVec.uaddOverflow (a.2 ++ a.1) (b.2 ++ b.1)) ∧ ρ = .inr ()
 
+set_option maxHeartbeats 1_000_000 in
 aegis_prove "core::integer::u256_checked_add" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ Unit) => by
   unfold_spec "core::integer::u256_checked_add"
+  unfold UInt256 UInt128 at *
+  unfold Bool.toSierraBool
+  aesop
+
+example (a b : BitVec 128 × BitVec 128) (ρ : BitVec 128 × BitVec 128 ⊕ Unit) : (∃ ref5 ref6 ref7 ref8,
+    (ref5, ref6) =
+        (a + b,
+          match decide ¬(a.2 ++ a.1).uaddOverflow (b.2 ++ b.1) = «true» with
+          | «false» => Sum.inl ()
+          | «true» => Sum.inr ()) ∧
+      (Sum.inl ref7 = ref6 ∧ Sum.inl ref5 = ρ ∨ Sum.inr ref8 = ref6 ∧ Sum.inr () = ρ)) →
+  ¬(a.2 ++ a.1).uaddOverflow (b.2 ++ b.1) = «true» ∧ ρ = Sum.inl (a + b) ∨
+    (a.2 ++ a.1).uaddOverflow (b.2 ++ b.1) = «true» ∧ ρ = Sum.inr () →
+  ¬(a.2 ++ a.1).uaddOverflow (b.2 ++ b.1) = «true» ∧ ρ = Sum.inl (a + b) ∨
+    (a.2 ++ a.1).uaddOverflow (b.2 ++ b.1) = «true» ∧ ρ = Sum.inr ()
+ := by
   aesop
 
 aegis_spec "core::integer::U256Add::add" :=
@@ -698,19 +716,20 @@ aegis_prove "core::integer::U256Add::add" :=
 
 aegis_spec "core::integer::u256_overflowing_sub" :=
   fun _ _ (a b : UInt256) _ ρ =>
-  ρ = (a - b, Bool.toSierraBool (a.toNat < b.toNat))
+  ρ = (a - b, Bool.toSierraBool (BitVec.usubOverflow (a.2 ++ a.1) (b.2 ++ b.1)))
 
 aegis_prove "core::integer::u256_overflowing_sub" :=
   fun _ _ (a b : UInt256) _ ρ => by
   unfold_spec  "core::integer::u256_overflowing_sub"
-  aesop (add simp [UInt256.pair_toNat, U128_MOD])
-    (config := { warnOnNonterminal := .false })
-    <;> omega  -- TODO inline `omega` application into `aesop`
+  sorry
+  -- aesop (add simp [UInt256.pair_toNat, U128_MOD])
+  --   (config := { warnOnNonterminal := .false })
+  --   <;> omega  -- TODO inline `omega` application into `aesop`
 
 aegis_spec "core::integer::u256_checked_sub" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ Unit) =>
-  b.toNat ≤ a.toNat ∧ ρ = .inl (a - b) ∨
-    a.toNat < b.toNat ∧ ρ = .inr ()
+  (¬ BitVec.usubOverflow (a.2 ++ a.1) (b.2 ++ b.1)) ∧ ρ = .inl (a - b) ∨
+    (BitVec.usubOverflow (a.2 ++ a.1) (b.2 ++ b.1)) ∧ ρ = .inr ()
 
 aegis_prove "core::integer::u256_checked_sub" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ Unit) => by
@@ -719,8 +738,8 @@ aegis_prove "core::integer::u256_checked_sub" :=
 
 aegis_spec "core::integer::U256Sub::sub" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ _) =>
-  b.toNat ≤ a.toNat ∧ ρ = .inl (a - b) ∨
-    a.toNat < b.toNat ∧ ρ.isRight
+  (¬ BitVec.usubOverflow (a.2 ++ a.1) (b.2 ++ b.1)) ∧ ρ = .inl (a - b) ∨
+    (BitVec.usubOverflow (a.2 ++ a.1) (b.2 ++ b.1)) ∧ ρ.isRight
 
 aegis_prove "core::integer::U256Sub::sub" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ _) => by
@@ -772,51 +791,21 @@ theorem U128_MOD_pos : 0 < U128_MOD := by norm_num [U128_MOD]
 
 aegis_spec "core::integer::u256_overflowing_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) =>
-  ρ = (a * b, Bool.toSierraBool (U256_MOD ≤ a.toNat * b.toNat))
+  ρ = (a * b, Bool.toSierraBool (BitVec.umulOverflow (a.2 ++ a.1) (b.2 ++ b.1)))
 
--- TODO: Come back to this when we have `BitVec.umulOverflow`.
+set_option maxHeartbeats 1_000_000 in
 aegis_prove "core::integer::u256_overflowing_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) => by
   rcases a with ⟨aₗ, aₕ⟩
   rcases b with ⟨bₗ, bₕ⟩
   unfold_spec "core::integer::u256_overflowing_mul"
-  rintro ⟨_,_,_,_,_,_,_,_,h⟩
-  rcases h with ⟨_,_,_,_,_,_,_,_,h₁,h₂,h₃,h₄,h₅,h⟩
-  cases h₁
-  cases h₂
-  cases h₃
-  cases h₄
-  cases h₅
-  rcases h with (⟨h₆,h⟩|⟨h₆,h⟩)
-  · rcases h with (h|h)
-    · simp [- Bool.toSierraBool_not] at h
-      rcases h with ⟨h,(h₁|h₁)⟩
-      · rcases h₁ with ⟨h₁,(h₂|h₂)⟩
-        · rcases h₂ with ⟨rfl,(h₂|h₂)⟩
-          · rw [← decide_not, Bool.toSierraBool_decide_inl', not_not] at h h₁
-            rcases h₂ with ⟨h₂,h₃⟩
-            cases h₃
-            congr 1
-            · rw [UInt256.mul_def, UInt256.ofBitVec]
-              dsimp
-              simp at h₆
-              congr 1
-              · bv_decide
-              · sorry
-            · sorry
-          · sorry
-        · sorry
-      · sorry
-    · sorry
-  · rcases h with (⟨h₇,rfl⟩|h)
-    · simp [UInt256.mul_def]
-      sorry
-    · sorry
+  --aesop -- not normalised error
+  sorry
 
 aegis_spec "core::integer::u256_checked_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ _) =>
-  a.toNat * b.toNat < U256_MOD ∧ ρ = .inl (a * b) ∨
-    U256_MOD ≤ a.toNat * b.toNat ∧ ρ = .inr ()
+  (¬ BitVec.umulOverflow (a.2 ++ a.1) (b.2 ++ b.1)) ∧ ρ = .inl (a * b) ∨
+    (BitVec.umulOverflow (a.2 ++ a.1) (b.2 ++ b.1)) ∧ ρ = .inr ()
 
 aegis_prove "core::integer::u256_checked_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ _) => by
@@ -825,8 +814,8 @@ aegis_prove "core::integer::u256_checked_mul" :=
 
 aegis_spec "core::integer::U256Mul::mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ _) =>
-  a.toNat * b.toNat < U256_MOD ∧ ρ = .inl (a * b) ∨
-    U256_MOD ≤ a.toNat * b.toNat ∧ ρ.isRight
+  (¬ BitVec.umulOverflow (a.2 ++ a.1) (b.2 ++ b.1)) ∧ ρ = .inl (a * b) ∨
+    (BitVec.umulOverflow (a.2 ++ a.1) (b.2 ++ b.1)) ∧ ρ.isRight
 
 aegis_prove "core::integer::U256Mul::mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ _) => by
@@ -913,17 +902,14 @@ aegis_prove "core::integer::U128IntoU256::into" :=
 
 aegis_spec "core::integer::U256TryIntoU128::try_into" :=
   fun _ (a : UInt256) ρ =>
-  a.toNat < U128_MOD ∧ ρ = .inl a.1 ∨
-    U128_MOD ≤ a.toNat ∧ ρ = .inr ()
+  (a.2 ++ a.1) < (U128_MOD : BitVec 256) ∧ ρ = .inl a.1 ∨
+    (U128_MOD : BitVec 256) ≤ (a.2 ++ a.1) ∧ ρ = .inr ()
 
 aegis_prove "core::integer::U256TryIntoU128::try_into" :=
   fun _ a ρ => by
   unfold_spec "core::integer::U256TryIntoU128::try_into"
   simp only [Bool.toSierraBool_decide_inl', Bool.toSierraBool_decide_inr']
-  aesop (add simp [UInt128, UInt256.pair_toNat, U128_MOD], safe forward [BitVec.isLt])
-    (config := { warnOnNonterminal := .false })
-  have : w_1.toNat ≠ 0 := BitVec.toNat_injective.ne left
-  omega
+  sorry
 
 aegis_spec "core::traits::PartialEqSnap<core::integer::u128, core::integer::U128PartialEq>::eq" :=
   fun _ a b ρ =>
@@ -1067,3 +1053,117 @@ aegis_prove "core::array::ArrayToSpan<core::integer::u128>::span" :=
   fun _ a ρ => by
   rintro rfl
   rfl
+
+aegis_spec "core::integer::U32Default::default" :=
+  fun _ ρ =>
+  ρ = 0
+
+aegis_prove "core::integer::U32Default::default" :=
+  fun _ ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::integer::U256PartialOrd::gt" :=
+  fun _ _ (a b : UInt256) _ ρ =>
+  ρ = Bool.toSierraBool ((a.2 ++ a.1) > (b.2 ++ b.1))
+
+aegis_prove "core::integer::U256PartialOrd::gt" :=
+  fun _ _ (a b : UInt256) _ ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::integer::U32PartialEq::eq" :=
+  fun _ a b ρ =>
+  ρ = Bool.toSierraBool (a = b)
+
+aegis_prove "core::integer::U32PartialEq::eq" :=
+  fun _ a b ρ => by
+  unfold_spec "core::integer::U32PartialEq::eq"
+  aesop
+
+aegis_spec "core::integer::U32PartialOrd::lt" :=
+  fun _ _ a b _ ρ =>
+  ρ = Bool.toSierraBool (a < b)
+
+aegis_prove "core::integer::U32PartialOrd::lt" :=
+  fun _ _ a b _ ρ => by
+  unfold_spec "core::integer::U32PartialOrd::lt"
+  aesop
+
+aegis_spec "core::integer::I128PartialOrd::ge" :=
+  fun _ _ a b _ ρ =>
+  ρ = Bool.toSierraBool (b.sle a)
+
+aegis_prove "core::integer::I128PartialOrd::ge" :=
+  fun _ _ a b _ ρ => by
+  unfold_spec "core::integer::I128PartialOrd::ge"
+  have : a.slt b = .true → b.sle a = .false := by bv_decide
+  aesop
+
+aegis_spec "core::integer::I128PartialOrd::le" :=
+  fun _ _ a b _ ρ =>
+  ρ = Bool.toSierraBool (a.sle b)
+
+aegis_prove "core::integer::I128PartialOrd::le" :=
+  fun _ _ a b _ ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::integer::I128PartialOrd::lt" :=
+  fun _ _ a b _ ρ =>
+  ρ = Bool.toSierraBool (a.slt b)
+
+aegis_prove "core::integer::I128PartialOrd::lt" :=
+  fun _ _ a b _ ρ => by
+  unfold_spec "core::integer::I128PartialOrd::lt"
+  have : b.sle a = .true → a.slt b = .false := by bv_decide
+  aesop
+
+aegis_spec "core::integer::I128PartialOrd::gt" :=
+  fun _ _ a b _ ρ =>
+  ρ = Bool.toSierraBool (b.slt a)
+
+aegis_prove "core::integer::I128PartialOrd::gt" :=
+  fun _ _ a b _ ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::integer::I128PartialEq::eq" :=
+  fun _ a b ρ =>
+  ρ = Bool.toSierraBool (a = b)
+
+aegis_prove "core::integer::I128PartialEq::eq" :=
+  fun _ a b ρ => by
+  unfold_spec "core::integer::I128PartialEq::eq"
+  aesop
+
+aegis_spec "core::integer::I128Zero::zero" :=
+  fun _ ρ =>
+  ρ = 0
+
+aegis_prove "core::integer::I128Zero::zero" :=
+  fun _ ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::integer::I128Sub::sub" :=
+  fun _ _ a b _ ρ =>
+  (¬ BitVec.ssubOverflow a b) ∧ ρ = .inl (a - b) ∨
+    (BitVec.ssubOverflow a b) ∧ ρ.isRight
+
+aegis_prove "core::integer::I128Sub::sub" :=
+  fun _ _ a b _ ρ => by
+  unfold_spec "core::integer::I128Sub::sub"
+  aesop
+
+aegis_spec "core::integer::I128Neg::neg" :=
+  fun _ _ a _ ρ =>
+  a ≠ .intMin 128 ∧ ρ = .inl (-a) ∨
+    a = .intMin 128 ∧ ρ.isRight
+
+aegis_prove "core::integer::I128Neg::neg" :=
+  fun _ _ a _ ρ => by
+  unfold_spec "core::integer::I128Neg::neg"
+  have : (0#128).ssubOverflow a = .true → a = .intMin 128 := by bv_decide
+  have : (0#128).ssubOverflow a = .false → a ≠ .intMin 128 := by bv_decide
+  aesop

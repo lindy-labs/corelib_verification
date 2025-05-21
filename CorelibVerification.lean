@@ -11,6 +11,8 @@ import CorelibVerification.Corelib.Starknet.Info
 import CorelibVerification.Corelib.Starknet.StorageAccess
 import CorelibVerification.Corelib.Starknet
 import CorelibVerification.Corelib.Metaprogramming
+import CorelibVerification.Corelib.ByteArray
+import CorelibVerification.Corelib.Fmt
 
 /- Trivial spec for the dummy function -/
 aegis_spec "corelib_verification::main" :=

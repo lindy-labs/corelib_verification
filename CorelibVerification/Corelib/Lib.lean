@@ -249,6 +249,42 @@ aegis_prove "core::panic_with_const_felt252<110930490496575599150170734222081291
   rintro rfl
   rfl
 
+aegis_spec "core::panic_with_const_felt252<9163530612918341685758827355588318787825527>" :=
+  fun _ ρ =>
+  ρ = ⟨(), [9163530612918341685758827355588318787825527]⟩
+
+aegis_prove "core::panic_with_const_felt252<9163530612918341685758827355588318787825527>" :=
+  fun _ ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::panic_with_const_felt252<35795041456712272209994989265157601652599>" :=
+  fun _ ρ =>
+  ρ = ⟨(), [35795041456712272209994989265157601652599]⟩
+
+aegis_prove "core::panic_with_const_felt252<35795041456712272209994989265157601652599>" :=
+  fun _ ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::panic_with_const_felt252<29721761890975875353235833581453094220424382983267374>" :=
+  fun _ ρ =>
+  ρ = ⟨(), [29721761890975875353235833581453094220424382983267374]⟩
+
+aegis_prove "core::panic_with_const_felt252<29721761890975875353235833581453094220424382983267374>" :=
+  fun _ ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::panic_with_const_felt252<573087285299505011920718992710461799>" :=
+  fun _ ρ =>
+  ρ = ⟨(), [573087285299505011920718992710461799]⟩
+
+aegis_prove "core::panic_with_const_felt252<573087285299505011920718992710461799>" :=
+  fun _ ρ => by
+  rintro rfl
+  rfl
+
 aegis_spec "core::panic_with_const_felt252<6713199>" :=
   fun _ ρ =>
   ρ = ⟨(), [6713199]⟩
@@ -267,3 +303,30 @@ aegis_prove "core::assert" :=
   fun _ a err ρ => by
   unfold_spec "core::assert"
   aesop
+
+aegis_spec "core::Felt252Default::default" :=
+  fun _ ρ =>
+  ρ = 0
+
+aegis_prove "core::Felt252Default::default" :=
+  fun _ ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::Felt252Mul::mul" :=
+  fun _ a b ρ =>
+  ρ = a * b
+
+aegis_prove "core::Felt252Mul::mul" :=
+  fun _ a b ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::Felt252Add::add" :=
+  fun _ a b ρ =>
+  ρ = a + b
+
+aegis_prove "core::Felt252Add::add" :=
+  fun _ a b ρ => by
+  rintro rfl
+  rfl
