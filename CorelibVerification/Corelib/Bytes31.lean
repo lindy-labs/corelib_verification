@@ -1,5 +1,7 @@
 import CorelibVerification.Corelib.Integer.Zeroable
 
+open Sierra
+
 aegis_spec "core::array::ArrayImpl<core::bytes_31::bytes31>::new" :=
   fun _ ρ =>
   ρ = []
@@ -103,7 +105,7 @@ aegis_prove "core::bytes_31::one_shift_left_bytes_felt252" :=
         have alt'' : (a - 16#32).toNat < 16 := by
           erw [← BitVec.lt_def (y := 16#32)]
           exact h₄
-        simp only [Sierra.UInt128.toFelt, Nat.reducePow, BitVec.shiftLeft_eq', BitVec.toNat_mul,
+        simp only [UInt128.toFelt, Nat.reducePow, BitVec.shiftLeft_eq', BitVec.toNat_mul,
           Nat.reduceMod, Nat.reduceSub, Nat.mul_mod_mod,
           BitVec.toFin_shiftLeft, Nat.one_mod, Fin.ofNat'_eq_cast, Fin.castLe_natCast, BitVec.toNat_ofNat]
         have hlt : 1 <<< (8 * BitVec.toNat (a - 16#32)) < 340282366920938463463374607431768211456 := by
@@ -134,10 +136,26 @@ aegis_prove "core::bytes_31::one_shift_left_bytes_felt252" :=
       have : 8 * a.toNat % 4294967296 = 8 * a.toNat := by
         rw [Nat.mod_eq_of_lt]
         omega
-      simp [this, Sierra.UInt128.toFelt, Fin.castLe_natCast]
+      simp [this, UInt128.toFelt, Fin.castLe_natCast]
       rw [Nat.mod_eq_of_lt]
       have := Nat.pow_le_pow_of_le (a := 2) (m := 8 * 15) (n := 8 * a.toNat) (by simp) (by omega)
       rw [Nat.one_shiftLeft]
       omega
     · simp at h₂ h₁
       bv_decide
+
+aegis_spec "core::bytes_31::split_u128" :=
+  fun _ _ v b _ ρ =>
+  b < 16#32 ∧ ρ = .inl (v.umod (1#128 <<< (8#32 * b)), v.udiv (1#128 <<< (8#32 * b))) ∨
+    16#32 ≤ b ∧ ρ.isRight
+
+aegis_prove "core::bytes_31::split_u128" :=
+  fun _ _ v b _ ρ => by
+  unfold_spec "core::bytes_31::split_u128"
+  rintro ⟨_,_,_,_,_,h₁,(⟨rfl,h₂,rfl⟩|h₂)⟩
+  · cases h₂
+    simp only [Sum.isRight_inl, Bool.false_eq_true, and_false, or_false] at h₁
+    rcases h₁ with ⟨h₁,h₁₂⟩
+    cases h₁₂
+    exact .inl ⟨h₁, rfl⟩
+  · aesop
