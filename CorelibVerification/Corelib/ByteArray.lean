@@ -47,3 +47,33 @@ aegis_prove "core::byte_array::ByteArrayImpl::append_split" :=
       aesop (config := { warnOnNonterminal := .false, maxSafePrefixRuleApplications := 50 })
       bv_decide
   · right; left; aesop
+
+aegis_spec "core::byte_array::ByteArrayImpl::append_split_index_gt_16" :=
+  fun _ _ _ _ _ _ _ => True
+
+aegis_prove "core::byte_array::ByteArrayImpl::append_split_index_gt_16" := sorry
+
+aegis_spec "core::byte_array::ByteArrayImpl::append_split_index_lt_16" :=
+  fun _ _ _ _ _ _ _ => True
+
+aegis_prove "core::byte_array::ByteArrayImpl::append_split_index_lt_16" := sorry
+
+aegis_spec "core::byte_array::ByteArrayImpl::append_split_index_16" :=
+  fun _ _ _ _ _ _ => True
+
+aegis_prove "core::byte_array::ByteArrayImpl::append_split_index_16" := sorry
+
+aegis_spec "core::byte_array::ByteArrayImpl::append_word_fits_into_pending" :=
+  fun _ _ _ _ _ _ _ => True
+
+aegis_prove "core::byte_array::ByteArrayImpl::append_word_fits_into_pending" := sorry
+
+aegis_spec "core::byte_array::ByteArrayImpl::append_word" :=
+  fun _ _ _ _ _ _ _ => True
+
+aegis_prove "core::byte_array::ByteArrayImpl::append_word" := sorry
+
+aegis_spec "core::byte_array::ByteArraySerde::serialize" :=
+  fun _ _ _ _ _ _ _ _ => True
+
+aegis_prove "core::byte_array::ByteArraySerde::serialize" := sorry
