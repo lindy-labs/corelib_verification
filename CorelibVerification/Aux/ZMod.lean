@@ -170,3 +170,10 @@ theorem ZMod.val_sub_one {m : ℕ} [NeZero m] [Fact (1 < m)] {a : ZMod m} (h : a
 theorem ZMod.val_ne_zero_of_ne_zero {m : ℕ} [NeZero m] {a : ZMod m} (h : ¬ a = 0) :
     a.val ≠ 0 := by
   rwa [ZMod.val_ne_zero]
+
+theorem Fin.castLe_natCast {m n : ℕ} [NeZero m] (h : m ≤ n) (a : ℕ) :
+    letI : NeZero n := ⟨Nat.pos_iff_ne_zero.mp (lt_of_lt_of_le (Nat.pos_of_neZero m) h)⟩
+    Fin.castLE h a = (a % m : ℕ) := by
+  ext
+  simp only [coe_castLE, val_natCast]
+  rw [Nat.mod_eq_of_lt (a := a % m) (lt_of_lt_of_le (Nat.mod_lt _ (Nat.pos_of_neZero m)) h)]

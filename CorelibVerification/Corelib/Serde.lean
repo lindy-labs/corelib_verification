@@ -152,7 +152,7 @@ aegis_prove "core::integer::u256Serde::deserialize" :=
           subst left_2 right
           split
           · rename_i h
-            simp_all only [not_lt, Option.filter_decide_false_some, Option.map_none', Option.toSum_none]
+            simp_all only [not_lt, Option.filter_decide_false_some, Option.map_none, Option.toSum_none]
             rw [← left] at left_1
             simp at left_1
           · aesop
@@ -212,7 +212,7 @@ aegis_prove "core::array::deserialize_array_helper::<core::integer::u128, core::
   · rcases h with (⟨h₁,h⟩|h)
     · simp only [Int.cast_zero, Bool.toSierraBool_decide_inl'] at h₁
       rcases h with (⟨h₂,h,rfl⟩|⟨h₂,rfl⟩)
-      simp only [Option.inl_eq_toSum_iff, Option.map_eq_some', Option.filter_eq_some,
+      simp only [Option.inl_eq_toSum_iff, Option.map_eq_some_iff,
         Option.mem_def, decide_eq_true_eq, Function.comp_apply] at h₂
       · rcases h with (h|h)
         · simp only [Int.cast_one, List.length_tail, List.all_eq_true, decide_eq_true_eq,
@@ -229,14 +229,18 @@ aegis_prove "core::array::deserialize_array_helper::<core::integer::u128, core::
                 refine ⟨h₃.1, fun x hx => ?_⟩
                 rw [List.take_cons (ZMod.val_pos.mpr h₁), List.mem_cons] at hx
                 rcases hx with (rfl|hx)
-                · exact h₂.1
+                · simp only [Option.filter_eq_some_iff, Option.some.injEq, decide_eq_true_eq,
+                    existsAndEq, true_and] at h₂
+                  exact h₂.1
                 · exact h₃.2 x hx
               split_ifs
               subst h
               left
               congr 2
               · rw [ZMod.val_sub_one h₁, List.drop_cons _ _ (ZMod.val_pos.mpr h₁)]
-              · cases h₂.2
+              · simp only [Option.filter_eq_some_iff, Option.some.injEq, decide_eq_true_eq,
+                  existsAndEq, true_and] at h₂
+                cases h₂.2
                 rw [List.take_cons (ZMod.val_pos.mpr h₁), ZMod.val_sub_one h₁]
           · cases h
             left
@@ -256,27 +260,24 @@ aegis_prove "core::array::deserialize_array_helper::<core::integer::u128, core::
                 rw [List.dropWhileN_cons_of_pos _ _ _ (ZMod.val_pos.mpr h₁)]
                 simp [h₂.1]
         · aesop
-      · simp only [Option.inr_eq_toSum_iff, Option.map_eq_none', Option.filter_eq_none,
-          List.head?_eq_none_iff, Option.mem_def, decide_eq_true_eq, not_lt] at h₂
-        rcases h₂ with (h₂|h₂)
+      · simp only [Option.inr_eq_toSum_iff, Option.map_eq_none_iff, Option.filter_eq_none_iff,
+          decide_eq_true_eq, not_lt] at h₂
+        have hr : ZMod.val r > 0 := ZMod.val_pos.mpr h₁
+        rcases s with (⟨⟩|⟨hd,tl⟩)
         · aesop
-        · split_ifs with h₃
-          · rcases s with (⟨⟩|⟨hd,tl⟩)
-            · aesop
-            · exfalso
-              simp only [List.head?_cons, Option.some.injEq, forall_eq', List.length_cons,
-                List.all_eq_true, decide_eq_true_eq] at h₂ h₃
-              have := h₃.2 hd (by rw [List.take_cons (ZMod.val_pos.mpr h₁)]; exact List.mem_cons_self)
-              apply Nat.le_lt_asymm h₂ this
-          · simp only [List.all_eq_true, decide_eq_true_eq, not_and, not_forall, Classical.not_imp,
-              not_lt, Sum.inl.injEq, Prod.mk.injEq, and_true, Sum.isRight_inl, Bool.false_eq_true,
-              or_false] at h₃ ⊢
-            rcases s with (⟨⟩|⟨hd,tl⟩)
-            · simp
-            · simp only [List.head?_cons, Option.some.injEq, forall_eq', List.length_cons,
-                exists_prop, List.tail_cons] at h₂ h₃ ⊢
-              rw [List.dropWhileN_cons_of_pos _ _ _ (ZMod.val_pos.mpr h₁)]
-              simp [not_lt_of_ge h₂]
+        · aesop (config := { warnOnNonterminal := .false })
+          · use hd
+            simp_all [List.take_cons]
+          · rw [List.dropWhileN_cons_of_pos _ _ _ hr]
+            simp [not_lt_of_ge h₂]
+          · use hd
+            simp_all [List.take_cons]
+          · rw [List.dropWhileN_cons_of_pos _ _ _ hr]
+            simp [not_lt_of_ge h₂]
+          · use hd
+            simp_all [List.take_cons]
+          · rw [List.dropWhileN_cons_of_pos _ _ _ hr]
+            simp [not_lt_of_ge h₂]
     · aesop
   · aesop
 
@@ -370,7 +371,7 @@ aegis_prove "core::array::deserialize_array_helper<core::integer::u64, core::ser
   · rcases h with (⟨h₁,h⟩|h)
     · simp only [Int.cast_zero, Bool.toSierraBool_decide_inl'] at h₁
       rcases h with (⟨h₂,h,rfl⟩|⟨h₂,rfl⟩)
-      simp only [Option.inl_eq_toSum_iff, Option.map_eq_some', Option.filter_eq_some,
+      simp only [Option.inl_eq_toSum_iff, Option.map_eq_some_iff, Option.filter_eq_some_iff,
         Option.mem_def, decide_eq_true_eq, Function.comp_apply] at h₂
       · rcases h with (h|h)
         · simp only [Int.cast_one, List.length_tail, List.all_eq_true, decide_eq_true_eq,
@@ -414,27 +415,24 @@ aegis_prove "core::array::deserialize_array_helper<core::integer::u64, core::ser
                 rw [List.dropWhileN_cons_of_pos _ _ _ (ZMod.val_pos.mpr h₁)]
                 simp [h₂.1]
         · aesop
-      · simp only [Option.inr_eq_toSum_iff, Option.map_eq_none', Option.filter_eq_none,
-          List.head?_eq_none_iff, Option.mem_def, decide_eq_true_eq, not_lt] at h₂
-        rcases h₂ with (h₂|h₂)
+      · simp only [Option.inr_eq_toSum_iff, Option.map_eq_none_iff, Option.filter_eq_none_iff,
+          decide_eq_true_eq, not_lt] at h₂
+        have hr : ZMod.val r > 0 := ZMod.val_pos.mpr h₁
+        rcases s with (⟨⟩|⟨hd,tl⟩)
         · aesop
-        · split_ifs with h₃
-          · rcases s with (⟨⟩|⟨hd,tl⟩)
-            · aesop
-            · exfalso
-              simp only [List.head?_cons, Option.some.injEq, forall_eq', List.length_cons,
-                List.all_eq_true, decide_eq_true_eq] at h₂ h₃
-              have := h₃.2 hd (by rw [List.take_cons (ZMod.val_pos.mpr h₁)]; exact List.mem_cons_self)
-              apply Nat.le_lt_asymm h₂ this
-          · simp only [List.all_eq_true, decide_eq_true_eq, not_and, not_forall, Classical.not_imp,
-              not_lt, Sum.inl.injEq, Prod.mk.injEq, and_true, Sum.isRight_inl, Bool.false_eq_true,
-              or_false] at h₃ ⊢
-            rcases s with (⟨⟩|⟨hd,tl⟩)
-            · simp
-            · simp only [List.head?_cons, Option.some.injEq, forall_eq', List.length_cons,
-                exists_prop, List.tail_cons] at h₂ h₃ ⊢
-              rw [List.dropWhileN_cons_of_pos _ _ _ (ZMod.val_pos.mpr h₁)]
-              simp [not_lt_of_ge h₂]
+        · aesop (config := { warnOnNonterminal := .false })
+          · use hd
+            simp_all [List.take_cons]
+          · rw [List.dropWhileN_cons_of_pos _ _ _ hr]
+            simp [not_lt_of_ge h₂]
+          · use hd
+            simp_all [List.take_cons]
+          · rw [List.dropWhileN_cons_of_pos _ _ _ hr]
+            simp [not_lt_of_ge h₂]
+          · use hd
+            simp_all [List.take_cons]
+          · rw [List.dropWhileN_cons_of_pos _ _ _ hr]
+            simp [not_lt_of_ge h₂]
     · aesop
   · aesop
 
