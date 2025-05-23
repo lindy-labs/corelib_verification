@@ -35,3 +35,13 @@ aegis_prove "core::result::ResultTraitImpl<(), core::fmt::Error>::expect<core::t
   fun _ a err ρ => by
   unfold_spec "core::result::ResultTraitImpl<(), core::fmt::Error>::expect<core::traits::PanicDestructForDestruct<core::fmt::Error, core::traits::DestructFromDrop<core::fmt::Error, core::fmt::ErrorDrop>>>"
   aesop
+
+aegis_spec "core::result::ResultTraitImpl<(), core::fmt::Error>::unwrap<core::traits::DestructFromDrop<core::fmt::Error, core::fmt::ErrorDrop>>" :=
+  fun _ a ρ =>
+  a = .inl () ∧ ρ = .inl () ∨
+    a = .inr () ∧ ρ.isRight
+
+aegis_prove "core::result::ResultTraitImpl<(), core::fmt::Error>::unwrap<core::traits::DestructFromDrop<core::fmt::Error, core::fmt::ErrorDrop>>" :=
+  fun _ a ρ => by
+  unfold_spec "core::result::ResultTraitImpl<(), core::fmt::Error>::unwrap<core::traits::DestructFromDrop<core::fmt::Error, core::fmt::ErrorDrop>>"
+  aesop

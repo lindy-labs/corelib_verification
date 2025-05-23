@@ -1167,3 +1167,42 @@ aegis_prove "core::integer::I128Neg::neg" :=
   have : (0#128).ssubOverflow a = .true → a = .intMin 128 := by bv_decide
   have : (0#128).ssubOverflow a = .false → a ≠ .intMin 128 := by bv_decide
   aesop
+
+aegis_spec "core::integer::op_eq_by_op::AddEqImpl<core::integer::u32, core::integer::U32Add>::add_eq" :=
+  fun _ _ a b _ ρ =>
+  (¬ BitVec.uaddOverflow a b) ∧ ρ = .inl (a + b, ()) ∨
+    (BitVec.uaddOverflow a b) ∧ ρ.isRight
+
+aegis_prove "core::integer::op_eq_by_op::AddEqImpl<core::integer::u32, core::integer::U32Add>::add_eq" :=
+  fun _ _ a b _ ρ => by
+  unfold_spec "core::integer::op_eq_by_op::AddEqImpl<core::integer::u32, core::integer::U32Add>::add_eq"
+  aesop
+
+aegis_spec "core::ops::arith::DeprecatedAddAssign<core::integer::u32, core::integer::op_eq_by_op::AddEqImpl<core::integer::u32, core::integer::U32Add>>::add_assign" :=
+  fun _ _ a b _ ρ =>
+  (¬ BitVec.uaddOverflow a b) ∧ ρ = .inl (a + b, ()) ∨
+    (BitVec.uaddOverflow a b) ∧ ρ.isRight
+
+aegis_prove "core::ops::arith::DeprecatedAddAssign<core::integer::u32, core::integer::op_eq_by_op::AddEqImpl<core::integer::u32, core::integer::U32Add>>::add_assign" :=
+  fun _ _ a b _ ρ => by
+  unfold_spec "core::ops::arith::DeprecatedAddAssign<core::integer::u32, core::integer::op_eq_by_op::AddEqImpl<core::integer::u32, core::integer::U32Add>>::add_assign"
+  aesop
+
+aegis_spec "core::integer::Felt252IntoU256::into" :=
+  fun _ _ a _ (ρ : UInt256) =>
+  ρ = UInt256.ofBitVec a.val
+
+aegis_prove "core::integer::Felt252IntoU256::into" :=
+  fun _ _ a _ (ρ : UInt256) => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::integer::DowncastableIntTryInto<core::integer::i128, core::integer::u128, core::integer::DowncastableI128, core::integer::DowncastableU128, _>::try_into" :=
+  fun _ _ a _ ρ =>
+  0 ≤ a.toInt ∧ ρ = .inl a.abs ∨
+    a.toInt < 0 ∧ ρ = .inr ()
+
+aegis_prove "core::integer::DowncastableIntTryInto<core::integer::i128, core::integer::u128, core::integer::DowncastableI128, core::integer::DowncastableU128, _>::try_into" :=
+  fun _ _ a _ ρ => by
+  unfold_spec "core::integer::DowncastableIntTryInto<core::integer::i128, core::integer::u128, core::integer::DowncastableI128, core::integer::DowncastableU128, _>::try_into"
+  aesop

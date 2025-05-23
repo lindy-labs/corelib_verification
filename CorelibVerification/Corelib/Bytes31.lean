@@ -1,4 +1,6 @@
+import CorelibVerification.Aux.Option
 import CorelibVerification.Corelib.Integer.Zeroable
+import CorelibVerification.Corelib.Serde
 
 open Sierra
 
@@ -30,13 +32,16 @@ aegis_prove "core::bytes_31::Felt252TryIntoBytes31::try_into" :=
   unfold_spec "core::bytes_31::Felt252TryIntoBytes31::try_into"
   aesop
 
+def Sierra.Bytes31.toFelt (x : Bytes31) : F := x.toFin.castLE (m := PRIME) (by simp [PRIME])
+
 aegis_spec "core::bytes_31::Bytes31IntoFelt252::into" :=
   fun _ a ρ =>
-  ρ = a.toNat
+  ρ = a.toFelt
 
 aegis_prove "core::bytes_31::Bytes31IntoFelt252::into" :=
   fun _ a ρ => by
   rintro rfl
+  unfold_spec "core::bytes_31::Bytes31IntoFelt252::into"
   rfl
 
 aegis_spec "core::bytes_31::one_shift_left_bytes_u128_nz" :=
@@ -159,3 +164,87 @@ aegis_prove "core::bytes_31::split_u128" :=
     cases h₁₂
     exact .inl ⟨h₁, rfl⟩
   · aesop
+
+aegis_spec "core::box::BoxImpl<core::bytes_31::bytes31>::unbox" :=
+  fun m a ρ =>
+  (m.boxHeap .Bytes31 a) = .some ρ
+
+aegis_prove "core::box::BoxImpl<core::bytes_31::bytes31>::unbox" :=
+  fun m a ρ => by
+  unfold_spec "core::box::BoxImpl<core::bytes_31::bytes31>::unbox"
+  aesop
+
+aegis_spec "core::array::SpanImpl<core::bytes_31::bytes31>::pop_front" :=
+  fun _ a ρ₁ ρ₂ =>
+  (a ≠ [] ∧ ρ₁ = a.tail ∧ ρ₂ = .inl a.head!) ∨ (a = [] ∧ ρ₁ = [] ∧ ρ₂ = .inr ())
+
+aegis_prove "core::array::SpanImpl<core::bytes_31::bytes31>::pop_front" :=
+  fun _ a ρ₁ ρ₂ => by
+  unfold_spec "core::array::SpanImpl<core::bytes_31::bytes31>::pop_front"
+  aesop
+
+aegis_spec "core::serde::into_felt252_based::SerdeImpl<core::bytes_31::bytes31, core::bytes_31::bytes31Copy, core::bytes_31::Bytes31IntoFelt252, core::bytes_31::Felt252TryIntoBytes31>::serialize" :=
+  fun _ a b ρ =>
+  ρ = b ++ [a.toFelt]
+
+aegis_prove "core::serde::into_felt252_based::SerdeImpl<core::bytes_31::bytes31, core::bytes_31::bytes31Copy, core::bytes_31::Bytes31IntoFelt252, core::bytes_31::Felt252TryIntoBytes31>::serialize" :=
+  fun _ a b ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::array::serialize_array_helper<core::bytes_31::bytes31, core::serde::into_felt252_based::SerdeImpl<core::bytes_31::bytes31, core::bytes_31::bytes31Copy, core::bytes_31::Bytes31IntoFelt252, core::bytes_31::Felt252TryIntoBytes31>, core::bytes_31::bytes31Drop>" :=
+    fun _ _ _ data str _ _ ρ =>
+    ρ = .inl (str ++ data.map Bytes31.toFelt, ()) ∨
+    ρ.isRight
+
+aegis_prove "core::array::serialize_array_helper<core::bytes_31::bytes31, core::serde::into_felt252_based::SerdeImpl<core::bytes_31::bytes31, core::bytes_31::bytes31Copy, core::bytes_31::Bytes31IntoFelt252, core::bytes_31::Felt252TryIntoBytes31>, core::bytes_31::bytes31Drop>" :=
+  fun _ _ _ data str _ _ ρ => by
+  unfold_spec "core::array::serialize_array_helper<core::bytes_31::bytes31, core::serde::into_felt252_based::SerdeImpl<core::bytes_31::bytes31, core::bytes_31::bytes31Copy, core::bytes_31::Bytes31IntoFelt252, core::bytes_31::Felt252TryIntoBytes31>, core::bytes_31::bytes31Drop>"
+  rcases data with (⟨⟩|⟨hd,tl⟩)
+    <;> aesop
+
+aegis_spec "core::array::ArrayImpl<core::bytes_31::bytes31>::span" :=
+  fun _ a ρ =>
+  ρ = a
+
+aegis_prove "core::array::ArrayImpl<core::bytes_31::bytes31>::span" :=
+  fun _ a ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::array::ArrayImpl<core::bytes_31::bytes31>::len" :=
+  fun _ a ρ =>
+  ρ = a.length
+
+aegis_prove "core::array::ArrayImpl<core::bytes_31::bytes31>::len" :=
+  fun _ a ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::array::ArrayToSpan<core::bytes_31::bytes31>::span" :=
+  fun _ a ρ =>
+  ρ = a
+
+aegis_prove "core::array::ArrayToSpan<core::bytes_31::bytes31>::span" :=
+  fun _ a ρ => by
+  rintro rfl
+  rfl
+
+aegis_spec "core::array::ArraySerde<core::bytes_31::bytes31, core::serde::into_felt252_based::SerdeImpl<core::bytes_31::bytes31, core::bytes_31::bytes31Copy, core::bytes_31::Bytes31IntoFelt252, core::bytes_31::Felt252TryIntoBytes31>, core::bytes_31::bytes31Drop>::serialize" :=
+  fun _ _ _ data str _ _ ρ =>
+  ρ = .inl (str ++ [(data.length : Sierra.UInt32).toFelt] ++ data.map Bytes31.toFelt, ()) ∨
+    ρ.isRight
+
+aegis_prove "core::array::ArraySerde<core::bytes_31::bytes31, core::serde::into_felt252_based::SerdeImpl<core::bytes_31::bytes31, core::bytes_31::bytes31Copy, core::bytes_31::Bytes31IntoFelt252, core::bytes_31::Felt252TryIntoBytes31>, core::bytes_31::bytes31Drop>::serialize" :=
+  fun _ _ _ data str _ _ ρ => by
+  unfold_spec "core::array::ArraySerde<core::bytes_31::bytes31, core::serde::into_felt252_based::SerdeImpl<core::bytes_31::bytes31, core::bytes_31::bytes31Copy, core::bytes_31::Bytes31IntoFelt252, core::bytes_31::Felt252TryIntoBytes31>, core::bytes_31::bytes31Drop>::serialize"
+  aesop
+
+aegis_spec "core::array::ArrayImpl<core::bytes_31::bytes31>::append" :=
+  fun _ a b ρ =>
+  ρ = a ++ [b]
+
+aegis_prove "core::array::ArrayImpl<core::bytes_31::bytes31>::append" :=
+  fun _ a b ρ => by
+  rintro rfl
+  rfl
