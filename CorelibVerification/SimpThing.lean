@@ -41,6 +41,19 @@ example
   aesop
   sorry
 
+inductive Foo where
+  | A
+  | B
+  | C
+  | D
+  | E
+  | F
+  | G
+  | H
+  deriving BEq
+
+set_option pp.all true in
+#reduce inferInstanceAs (BEq Foo)
 
 
 #eval Lean.versionString
