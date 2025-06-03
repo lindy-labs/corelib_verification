@@ -971,8 +971,10 @@ aegis_spec "core::integer::u256_overflowing_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) =>
   ρ = (a * b, Bool.toSierraBool (BitVec.umulOverflow (a.2 ++ a.1) (b.2 ++ b.1)))
 
+set_option maxHeartbeats 1_000_000 in
 aegis_prove "core::integer::u256_overflowing_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) => by
+  have h128lt256 : 128 ≤ 256 := by simp
   rcases a with ⟨aₗ, aₕ⟩
   rcases b with ⟨bₗ, bₕ⟩
   unfold_spec "core::integer::u256_overflowing_mul"
@@ -992,16 +994,16 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
             · rw [BitVec.append_mul_append_eq]
               simp only [Nat.reduceAdd, BitVec.zero_mul, BitVec.add_zero, Nat.reduceMul,
                 BitVec.truncate_eq_setWidth]
-              rw [BitVec.extractLsb'_append_eq_of_le' (by simp),
-                BitVec.extractLsb'_mul (by simp), BitVec.extractLsb'_mul (by simp),
-                BitVec.extractLsb'_setWidth (by simp), BitVec.extractLsb'_setWidth (by simp)]
+              rw [BitVec.extractLsb'_append_eq_of_le' (by rfl),
+                BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_mul (by rfl),
+                BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256]
               simp only [BitVec.extractLsb'_eq_self]
             · rw [BitVec.append_mul_append_eq]
               simp only [Nat.reduceAdd, BitVec.zero_mul, BitVec.add_zero, Nat.reduceMul,
                 BitVec.truncate_eq_setWidth]
-              rw [BitVec.extractLsb'_append_eq_of_le (by simp),
-                BitVec.extractLsb'_mul (by simp), BitVec.extractLsb'_add (by simp),
-                BitVec.extractLsb'_setWidth (by simp), BitVec.extractLsb'_setWidth (by simp)]
+              rw [BitVec.extractLsb'_append_eq_of_le (by rfl),
+                BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_add (by rfl),
+                BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256]
               simp only [BitVec.extractLsb'_eq_self]
               ac_rfl
             · rw [BitVec.umulOverflow_append]
@@ -1012,18 +1014,15 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
             · rw [BitVec.append_mul_append_eq]
               simp only [Nat.reduceAdd, BitVec.zero_mul, BitVec.add_zero, Nat.reduceMul,
                 BitVec.truncate_eq_setWidth]
-              rw [BitVec.extractLsb'_append_eq_of_le' (by simp),
-                BitVec.extractLsb'_mul (by simp), BitVec.extractLsb'_mul (by simp),
-                BitVec.extractLsb'_setWidth (by simp),
-                BitVec.extractLsb'_setWidth (by simp)]
+              rw [BitVec.extractLsb'_append_eq_of_le' (by rfl),
+                BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_mul (by rfl),
+                BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256]
               simp
             · rw [BitVec.append_mul_append_eq]
               simp only [Nat.reduceAdd, BitVec.zero_mul, BitVec.add_zero, Nat.reduceMul,
                 BitVec.truncate_eq_setWidth]
-              rw [BitVec.extractLsb'_append_eq_of_le (by simp),
-                BitVec.extractLsb'_mul (by simp),
-                BitVec.extractLsb'_setWidth (by simp),
-                BitVec.extractLsb'_setWidth (by simp)]
+              rw [BitVec.extractLsb'_append_eq_of_le (by rfl),
+                BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256]
               simp only [BitVec.extractLsb'_eq_self, tsub_self]
               ac_rfl
             · rw [BitVec.umulOverflow_append]
@@ -1036,55 +1035,45 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
             · rw [BitVec.append_mul_append_eq]
               simp only [Nat.reduceAdd, BitVec.zero_mul, BitVec.add_zero, Nat.reduceMul,
                 BitVec.truncate_eq_setWidth]
-              rw [BitVec.extractLsb'_append_eq_of_le' (by simp),
-                BitVec.extractLsb'_mul (by simp), BitVec.extractLsb'_mul (by simp),
-                BitVec.extractLsb'_setWidth (by simp),
-                BitVec.extractLsb'_setWidth (by simp)]
+              rw [BitVec.extractLsb'_append_eq_of_le' (by rfl),
+                BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_mul (by rfl),
+                BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256]
               simp
             · rw [BitVec.append_mul_append_eq]
               simp only [Nat.reduceAdd, BitVec.zero_mul, BitVec.add_zero, Nat.reduceMul,
                 BitVec.truncate_eq_setWidth]
-              rw [BitVec.extractLsb'_append_eq_of_le (by simp),
-                BitVec.extractLsb'_mul (by simp),
-                BitVec.extractLsb'_setWidth (by simp),
-                BitVec.extractLsb'_setWidth (by simp),
-                BitVec.extractLsb'_mul (by simp),
-                BitVec.extractLsb'_setWidth (by simp),
-                BitVec.extractLsb'_setWidth (by simp)]
+              rw [BitVec.extractLsb'_append_eq_of_le (by rfl),
+                BitVec.extractLsb'_mul h128lt256,
+                BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256,
+                BitVec.extractLsb'_mul h128lt256,
+                BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256]
               simp only [BitVec.extractLsb'_eq_self, tsub_self]
               ac_rfl
             · rw [BitVec.umulOverflow_append]
               congr 1
               simp only [BitVec.ofNat_eq_ofNat, Nat.reduceMul, BitVec.truncate_eq_setWidth]
-              --simp [hlt, h₂, h₃]
-              rw [BitVec.extractLsb'_mul (by simp),
-                BitVec.extractLsb'_setWidth (by simp),
-                BitVec.extractLsb'_setWidth (by simp)] at h₁ h₄
-              rw [BitVec.extractLsb'_mul (by simp),
-                BitVec.extractLsb'_setWidth (by simp),
-                BitVec.extractLsb'_setWidth (by simp)] at h₄
-              sorry
+              rw [BitVec.extractLsb'_mul h128lt256,
+                BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256] at h₁ h₄
+              rw [BitVec.extractLsb'_mul h128lt256,
+                BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256] at h₄
+              simp [hlt, h₂, h₃]
+              bv_decide
           · simp at h₁ h₂ h₃ h₄
             simp [UInt256.mul_def, UInt256.ofBitVec]
             refine ⟨⟨?_, ?_⟩, ?_⟩
             · rw [BitVec.append_mul_append_eq]
               simp only [Nat.reduceAdd, BitVec.zero_mul, BitVec.add_zero, Nat.reduceMul,
                 BitVec.truncate_eq_setWidth]
-              rw [BitVec.extractLsb'_append_eq_of_le' (by simp),
-                BitVec.extractLsb'_mul (by simp), BitVec.extractLsb'_mul (by simp),
-                BitVec.extractLsb'_setWidth (by simp),
-                BitVec.extractLsb'_setWidth (by simp)]
+              rw [BitVec.extractLsb'_append_eq_of_le' (by rfl),
+                BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_mul (by rfl),
+                BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256]
               simp
             · rw [BitVec.append_mul_append_eq]
               simp only [Nat.reduceAdd, BitVec.zero_mul, BitVec.add_zero, Nat.reduceMul,
                 BitVec.truncate_eq_setWidth]
-              rw [BitVec.extractLsb'_append_eq_of_le (by simp),
-                BitVec.extractLsb'_mul (by simp),
-                BitVec.extractLsb'_setWidth (by simp),
-                BitVec.extractLsb'_setWidth (by simp),
-                BitVec.extractLsb'_mul (by simp),
-                BitVec.extractLsb'_setWidth (by simp),
-                BitVec.extractLsb'_setWidth (by simp)]
+              rw [BitVec.extractLsb'_append_eq_of_le (by rfl),
+                BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256,
+                BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256]
               simp only [BitVec.extractLsb'_eq_self, tsub_self]
               ac_rfl
             · rw [BitVec.umulOverflow_append]
@@ -1096,21 +1085,16 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
         · rw [BitVec.append_mul_append_eq]
           simp only [Nat.reduceAdd, BitVec.zero_mul, BitVec.add_zero, Nat.reduceMul,
             BitVec.truncate_eq_setWidth]
-          rw [BitVec.extractLsb'_append_eq_of_le' (by simp),
-            BitVec.extractLsb'_mul (by simp), BitVec.extractLsb'_mul (by simp),
-            BitVec.extractLsb'_setWidth (by simp),
-            BitVec.extractLsb'_setWidth (by simp)]
+          rw [BitVec.extractLsb'_append_eq_of_le' (by rfl),
+            BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_mul (by rfl),
+            BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256]
           simp
         · rw [BitVec.append_mul_append_eq]
           simp only [Nat.reduceAdd, BitVec.zero_mul, BitVec.add_zero, Nat.reduceMul,
             BitVec.truncate_eq_setWidth]
-          rw [BitVec.extractLsb'_append_eq_of_le (by simp),
-            BitVec.extractLsb'_mul (by simp),
-            BitVec.extractLsb'_setWidth (by simp),
-            BitVec.extractLsb'_setWidth (by simp),
-            BitVec.extractLsb'_mul (by simp),
-            BitVec.extractLsb'_setWidth (by simp),
-            BitVec.extractLsb'_setWidth (by simp)]
+          rw [BitVec.extractLsb'_append_eq_of_le (by rfl),
+            BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256,
+            BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256]
           simp only [BitVec.extractLsb'_eq_self, tsub_self]
           ac_rfl
         · rw [BitVec.umulOverflow_append]
@@ -1123,19 +1107,15 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
           BitVec.truncate_eq_setWidth]
         rw [BitVec.extractLsb'_append_eq_of_le' (by simp),
           BitVec.extractLsb'_mul (by simp), BitVec.extractLsb'_mul (by simp),
-          BitVec.extractLsb'_setWidth (by simp),
-          BitVec.extractLsb'_setWidth (by simp)]
+          BitVec.extractLsb'_setWidth h128lt256,
+          BitVec.extractLsb'_setWidth h128lt256]
         simp
       · rw [BitVec.append_mul_append_eq]
         simp only [Nat.reduceAdd, BitVec.zero_mul, BitVec.add_zero, Nat.reduceMul,
           BitVec.truncate_eq_setWidth]
-        rw [BitVec.extractLsb'_append_eq_of_le (by simp),
-          BitVec.extractLsb'_mul (by simp),
-          BitVec.extractLsb'_setWidth (by simp),
-          BitVec.extractLsb'_setWidth (by simp),
-          BitVec.extractLsb'_mul (by simp),
-          BitVec.extractLsb'_setWidth (by simp),
-          BitVec.extractLsb'_setWidth (by simp)]
+        rw [BitVec.extractLsb'_append_eq_of_le (by rfl),
+            BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256,
+            BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256]
         simp only [BitVec.extractLsb'_eq_self, tsub_self]
         ac_rfl
       · rw [BitVec.umulOverflow_append]
@@ -1148,26 +1128,21 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
         BitVec.truncate_eq_setWidth]
       rw [BitVec.extractLsb'_append_eq_of_le' (by simp),
         BitVec.extractLsb'_mul (by simp), BitVec.extractLsb'_mul (by simp),
-        BitVec.extractLsb'_setWidth (by simp),
-        BitVec.extractLsb'_setWidth (by simp)]
+        BitVec.extractLsb'_setWidth h128lt256,
+        BitVec.extractLsb'_setWidth h128lt256]
       simp
     · rw [BitVec.append_mul_append_eq]
       simp only [Nat.reduceAdd, BitVec.zero_mul, BitVec.add_zero, Nat.reduceMul,
         BitVec.truncate_eq_setWidth]
-      rw [BitVec.extractLsb'_append_eq_of_le (by simp),
-        BitVec.extractLsb'_mul (by simp),
-        BitVec.extractLsb'_setWidth (by simp),
-        BitVec.extractLsb'_setWidth (by simp),
-        BitVec.extractLsb'_mul (by simp),
-        BitVec.extractLsb'_setWidth (by simp),
-        BitVec.extractLsb'_setWidth (by simp)]
+      rw [BitVec.extractLsb'_append_eq_of_le (by rfl),
+            BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256,
+            BitVec.extractLsb'_mul h128lt256, BitVec.extractLsb'_setWidth h128lt256, BitVec.extractLsb'_setWidth h128lt256]
       simp only [BitVec.extractLsb'_eq_self, tsub_self]
       ac_rfl
     · rw [BitVec.umulOverflow_append]
       bv_check
         "Integer.lean-sound_core::integer::u256_overflowing_mul._@.CorelibVerification.Corelib.Integer._hyg.9095-1158-6.lrat"
 
-#exit
 aegis_spec "core::integer::u256_checked_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ _) =>
   (¬ BitVec.umulOverflow (a.2 ++ a.1) (b.2 ++ b.1)) ∧ ρ = .inl (a * b) ∨
