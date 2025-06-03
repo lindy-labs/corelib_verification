@@ -820,10 +820,11 @@ theorem Nat.mul_add_mod_mul {w x y z : ℕ} (h : w < x) :
 theorem BitVec.append_mul_append_eq (a b c d : BitVec w) :
     (a ++ b) * (c ++ d) =
     (b * c + a * d + (b.zeroExtend (2 * w) * d.zeroExtend (2 * w)).extractLsb' w w) ++ b * d := by
+  have hwpos : 0 < 2 ^ w := Nat.two_pow_pos w
   apply eq_of_toNat_eq
   simp
   rw [← Nat.shiftLeft_add_eq_or_of_lt (b.isLt), ← Nat.shiftLeft_add_eq_or_of_lt (d.isLt),
-    ← Nat.shiftLeft_add_eq_or_of_lt (Nat.mod_lt _ (Nat.two_pow_pos w))]
+    ← Nat.shiftLeft_add_eq_or_of_lt (Nat.mod_lt _ (hwpos))]
   simp [Nat.shiftLeft_eq, Nat.add_mul, Nat.mul_add, Nat.add_assoc]
   rw [Nat.mul_mul_mul_comm, ← Nat.pow_add, Nat.mul_add_mod_self_right]
   simp [← Nat.add_assoc]
@@ -833,21 +834,12 @@ theorem BitVec.append_mul_append_eq (a b c d : BitVec w) :
   conv => left; rw [← Nat.div_add_mod (b.toNat * d.toNat) (2 ^ w)]
   rw [← Nat.mul_assoc, Nat.mul_right_comm a.toNat, Nat.mul_comm (2 ^ w),
     ← Nat.add_assoc, ← Nat.add_mul, ← Nat.add_mul, Nat.mul_comm _ (2 ^ w),
-    Nat.mul_add_mod_mul (Nat.mod_lt _ (Nat.two_pow_pos w)), Nat.mul_comm]
+    Nat.mul_add_mod_mul (Nat.mod_lt _ (hwpos)), Nat.mul_comm]
 
 theorem BitVec.extractLsb'_append_eq_of_le' {v w} {xhi : BitVec v} {xlo : BitVec w}
     {start len : Nat} (h : start + len ≤ w) :
     extractLsb' start len (xhi ++ xlo) = extractLsb' start len xlo := by
-  simp [extractLsb'_append_eq_ite, h]
-  split_ifs
-  · rfl
-  · have : len - (w - start) = 0 := by omega
-    sorry  -- upstreaming this
-  · have : start = w := by omega
-    subst this
-    have : len = 0 := by omega
-    subst this
-    simp
+  sorry -- is upstreamed now
 
 @[simp]
 theorem BitVec.extractLsb'_setWidth {v w} (hv : v ≤ w) {x : BitVec v} :
@@ -858,8 +850,122 @@ theorem BitVec.extractLsb'_setWidth {v w} (hv : v ≤ w) {x : BitVec v} :
     Nat.mod_eq_of_lt x.isLt]
 
 theorem BitVec.umulOverflow_iff {w} (x y : BitVec w) :
-    x.umulOverflow y = decide (x.toNat * y.toNat ≠ (x * y).toNat) := by
-  sorry
+    x.umulOverflow y = ((x * y).toNat < x.toNat * y.toNat) := by
+  rw [BitVec.umulOverflow]
+  congr 1
+  apply propext
+  constructor
+  · intro h
+    exact Nat.lt_of_lt_of_le (x * y).isLt h
+  · intro h
+    rw [BitVec.toNat_mul] at h
+    apply le_of_not_gt
+    intro he
+    have := Nat.mod_eq_of_lt he
+    omega
+
+theorem BitVec.umulOverflow_append {w} (a b c d : BitVec w) :
+    (a ++ b).umulOverflow (c ++ d) =
+    ((0 < a && 0 < c) ||
+      b.umulOverflow c ||
+      a.umulOverflow d ||
+      (b * c).uaddOverflow (a * d) ||
+      (b * c + a * d).uaddOverflow ((b.zeroExtend (2 * w) * d.zeroExtend (2 * w)).extractLsb' w w)) := by
+  have hwpos : 0 < 2 ^ w := Nat.two_pow_pos w
+  rcases a with ⟨⟨a, alt⟩⟩
+  rcases b with ⟨⟨b, blt⟩⟩
+  rcases c with ⟨⟨c, clt⟩⟩
+  rcases d with ⟨⟨d, dlt⟩⟩
+  rw [← Bool.coe_iff_coe]
+  rw [BitVec.umulOverflow_iff, BitVec.append_mul_append_eq]
+  simp
+  rw [← Nat.shiftLeft_add_eq_or_of_lt blt, ← Nat.shiftLeft_add_eq_or_of_lt dlt,
+    ← Nat.shiftLeft_add_eq_or_of_lt (Nat.mod_lt _ (hwpos))]
+  simp [Nat.shiftLeft_eq, Nat.add_mul, Nat.mul_add, Nat.add_assoc]
+  constructor
+  · rw [← not_imp_not]
+    simp only [_root_.not_or, Bool.not_eq_true, not_lt, and_imp]
+    intro hac hbc had hbcad hbd
+    simp [umulOverflow, uaddOverflow] at *
+    rw [← add_assoc (b * c), Nat.add_mod_of_add_mod_lt hbd, Nat.add_mod_of_add_mod_lt hbcad,
+      Nat.mod_eq_of_lt hbc, Nat.mod_eq_of_lt had]
+    ring_nf
+    by_cases ha: 0#w < ⟨a, alt⟩
+    · cases hac ha
+      simp at *
+      conv_lhs => rw [← Nat.div_add_mod (b * d) (2 ^ w), ← Nat.add_assoc, mul_comm (2 ^ w)]
+      gcongr _ + ?_ * _ + _
+      rw [Nat.shiftRight_eq_div_pow, Nat.mul_two, Nat.pow_add,
+        Nat.mod_eq_of_lt (a := b * d) (Nat.mul_lt_mul'' blt dlt),
+        Nat.mod_eq_of_lt (Nat.div_lt_of_lt_mul (Nat.mul_lt_mul'' blt dlt))]
+    · simp at ha
+      subst ha
+      simp at *
+      conv_lhs => rw [← Nat.div_add_mod (b * d) (2 ^ w), ← Nat.add_assoc, mul_comm (2 ^ w)]
+      gcongr _ + ?_ * _ + _
+      rw [Nat.shiftRight_eq_div_pow, Nat.mul_two, Nat.pow_add,
+        Nat.mod_eq_of_lt (a := b * d) (Nat.mul_lt_mul'' blt dlt),
+        Nat.mod_eq_of_lt (Nat.div_lt_of_lt_mul (Nat.mul_lt_mul'' blt dlt))]
+  · rintro ((((⟨ha,hc⟩|h)|h)|h)|h)
+    · apply lt_of_le_of_lt (b := (2 ^ w - 1) * 2 ^ w + (2 ^ w - 1))
+      · gcongr ?_ * _ + ?_
+        <;> exact (Nat.le_sub_one_iff_lt (hwpos)).mpr (Nat.mod_lt _ hwpos)
+      · calc
+          _ = (2 ^ w - 1) * (2 ^ w + 1) := rfl
+          _ = 2 ^ w * 2 ^ w  - 1 := by rw [mul_comm, ← mul_self_tsub_one];
+          _ < 2 ^ w * 2 ^ w := by exact Nat.sub_one_lt_of_lt (Nat.mul_pos hwpos hwpos)
+          _ ≤ a * 2 ^ w * (c * 2 ^ w) := Nat.mul_le_mul
+               (Nat.le_mul_of_pos_left (2 ^ w) ha) (Nat.le_mul_of_pos_left (2 ^ w) hc)
+          _ ≤ _ := Nat.le_add_right _ _
+    · simp [umulOverflow] at h
+      apply lt_of_lt_of_le (b := 2 ^ w * 2 ^ w + b * d % 2 ^ w)
+      · refine Nat.add_lt_add_right ?_ (b * d % 2 ^ w)
+        refine Nat.mul_lt_mul_of_pos_right ?_ (hwpos)
+        apply Nat.mod_lt _ (hwpos)
+      · ring_nf
+        calc
+          b * d % 2 ^ w + 2 ^ (w * 2)
+            ≤ b * d + 2 ^ (w * 2) := by gcongr; apply Nat.mod_le
+          _ ≤ b * d + b * c * 2 ^ w := by rw [Nat.mul_two, pow_add]; gcongr
+          _ ≤ b * d + b * c * 2 ^ w + d * a * 2 ^ w := Nat.le_add_right _ _
+          _ ≤ _ := Nat.le_add_right _ _
+    · simp [umulOverflow] at h
+      ring_nf
+      calc
+        _ < 2 ^ w * 2 ^ w + b * d % 2 ^ w := by gcongr; apply Nat.mod_lt _ (hwpos)
+        _ ≤ 2 ^ w * 2 ^ w + b * d := by gcongr; apply Nat.mod_le
+        _ ≤ a * d * 2 ^ w + b * d := by gcongr
+        _ ≤ a * d * 2 ^ w + b * d + (b * c * 2 ^ w + c * a * 2 ^ (w * 2)) := Nat.le_add_right _ _
+        _ = _ := by ac_rfl
+    · simp [uaddOverflow] at h
+      ring_nf
+      calc
+        _ < 2 ^ w * 2 ^ w + b * d % 2 ^ w := by gcongr; apply Nat.mod_lt _ (hwpos)
+        _ ≤ 2 ^ w * 2 ^ w + b * d := by gcongr; apply Nat.mod_le
+        _ ≤ (b * c % 2 ^ w + a * d % 2 ^ w) * 2 ^ w + b * d := by gcongr
+        _ ≤ (b * c + a * d) * 2 ^ w + b * d := by gcongr <;> apply Nat.mod_le
+        _ = b * c * 2 ^ w + a * d * 2 ^ w + b * d := by rw [add_mul]
+        _ = b * c * 2 ^ w + b * d + a * d * 2 ^ w := by ac_rfl
+        _ ≤ _ := by gcongr ?_ + a * d * 2 ^ w; apply Nat.le_add_right
+    · simp [uaddOverflow] at h
+      ring_nf at h ⊢
+      have := lt_iff_exists_pos_add.mpr ⟨2 ^ w, ⟨hwpos, Nat.add_mod_add_of_le_add_mod h⟩⟩
+      calc
+        _ < ((b * c + a * d) % 2 ^ w + (b * d % 2 ^ (w * 2)) >>> w % 2 ^ w) * 2 ^ w + b * d % 2 ^ w := by gcongr
+        _ = ((b * c + a * d) % 2 ^ w + (b * d) / 2 ^ w) * 2 ^ w + b * d % 2 ^ w := by
+              congr
+              rw [Nat.shiftRight_eq_div_pow, Nat.mul_two, Nat.pow_add,
+                Nat.mod_eq_of_lt (Nat.mul_lt_mul'' blt dlt),
+                Nat.mod_eq_of_lt (Nat.div_lt_of_lt_mul (Nat.mul_lt_mul'' blt dlt))]
+        _ = (b * c + a * d) % 2 ^ w * 2 ^ w + (b * d / 2 ^ w) * 2 ^ w + b * d % 2 ^ w := by
+                simp only [add_mul]
+        _ = (b * c + a * d) % 2 ^ w * 2 ^ w + b * d := by
+              rw [Nat.add_assoc]
+              congr
+              rw [Nat.mul_comm, Nat.div_add_mod (b * d) (2 ^ w)]
+        _ ≤ b * c * 2 ^ w + a * d * 2 ^ w + b * d := by rw [← Nat.add_mul]; gcongr; apply Nat.mod_le
+        _ ≤ b * c * 2 ^ w + c * a * 2 ^ (w * 2) + a * d * 2 ^ w + b * d := by gcongr; apply Nat.le_add_right
+        _ = _ := by ac_rfl
 
 aegis_spec "core::integer::u256_overflowing_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 × _) =>
@@ -898,7 +1004,8 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
                 BitVec.extractLsb'_setWidth (by simp), BitVec.extractLsb'_setWidth (by simp)]
               simp only [BitVec.extractLsb'_eq_self]
               ac_rfl
-            · sorry
+            · rw [BitVec.umulOverflow_append]
+              bv_decide
           · simp at h₂ h₁ h₄
             simp [UInt256.mul_def, UInt256.ofBitVec]
             refine ⟨⟨?_, ?_⟩, ?_⟩
@@ -919,7 +1026,9 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
                 BitVec.extractLsb'_setWidth (by simp)]
               simp only [BitVec.extractLsb'_eq_self, tsub_self]
               ac_rfl
-            · sorry
+            · rw [BitVec.umulOverflow_append]
+              bv_check
+                "Integer.lean-sound_core::integer::u256_overflowing_mul._@.CorelibVerification.Corelib.Integer._hyg.9095-1030-14.lrat"
         · rcases h₄ with (⟨h₄,rfl⟩|⟨h₄,rfl⟩)
           · simp at h₁ h₂ h₃ h₄
             simp [UInt256.mul_def, UInt256.ofBitVec]
@@ -944,7 +1053,17 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
                 BitVec.extractLsb'_setWidth (by simp)]
               simp only [BitVec.extractLsb'_eq_self, tsub_self]
               ac_rfl
-            · sorry
+            · rw [BitVec.umulOverflow_append]
+              congr 1
+              simp only [BitVec.ofNat_eq_ofNat, Nat.reduceMul, BitVec.truncate_eq_setWidth]
+              --simp [hlt, h₂, h₃]
+              rw [BitVec.extractLsb'_mul (by simp),
+                BitVec.extractLsb'_setWidth (by simp),
+                BitVec.extractLsb'_setWidth (by simp)] at h₁ h₄
+              rw [BitVec.extractLsb'_mul (by simp),
+                BitVec.extractLsb'_setWidth (by simp),
+                BitVec.extractLsb'_setWidth (by simp)] at h₄
+              sorry
           · simp at h₁ h₂ h₃ h₄
             simp [UInt256.mul_def, UInt256.ofBitVec]
             refine ⟨⟨?_, ?_⟩, ?_⟩
@@ -968,7 +1087,9 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
                 BitVec.extractLsb'_setWidth (by simp)]
               simp only [BitVec.extractLsb'_eq_self, tsub_self]
               ac_rfl
-            · sorry
+            · rw [BitVec.umulOverflow_append]
+              bv_check
+                "Integer.lean-sound_core::integer::u256_overflowing_mul._@.CorelibVerification.Corelib.Integer._hyg.9095-1083-14.lrat"
       · simp at h₁ h₂ h₃
         simp [UInt256.mul_def, UInt256.ofBitVec]
         refine ⟨⟨?_, ?_⟩, ?_⟩
@@ -992,7 +1113,8 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
             BitVec.extractLsb'_setWidth (by simp)]
           simp only [BitVec.extractLsb'_eq_self, tsub_self]
           ac_rfl
-        · sorry
+        · rw [BitVec.umulOverflow_append]
+          bv_normalize
     · simp at h₁ h₂
       simp [UInt256.mul_def, UInt256.ofBitVec]
       refine ⟨⟨?_, ?_⟩, ?_⟩
@@ -1016,7 +1138,8 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
           BitVec.extractLsb'_setWidth (by simp)]
         simp only [BitVec.extractLsb'_eq_self, tsub_self]
         ac_rfl
-      · sorry
+      · rw [BitVec.umulOverflow_append]
+        bv_normalize
   · simp at h₁
     simp [UInt256.mul_def, UInt256.ofBitVec]
     refine ⟨⟨?_, ?_⟩, ?_⟩
@@ -1040,8 +1163,11 @@ aegis_prove "core::integer::u256_overflowing_mul" :=
         BitVec.extractLsb'_setWidth (by simp)]
       simp only [BitVec.extractLsb'_eq_self, tsub_self]
       ac_rfl
-    · sorry
+    · rw [BitVec.umulOverflow_append]
+      bv_check
+        "Integer.lean-sound_core::integer::u256_overflowing_mul._@.CorelibVerification.Corelib.Integer._hyg.9095-1158-6.lrat"
 
+#exit
 aegis_spec "core::integer::u256_checked_mul" :=
   fun _ _ (a b : UInt256) _ (ρ : UInt256 ⊕ _) =>
   (¬ BitVec.umulOverflow (a.2 ++ a.1) (b.2 ++ b.1)) ∧ ρ = .inl (a * b) ∨
